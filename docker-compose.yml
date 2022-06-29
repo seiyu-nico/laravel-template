@@ -45,3 +45,22 @@ services:
       - MYSQL_USER=${DB_USERNAME:-phper}
       - MYSQL_PASSWORD=${DB_PASSWORD:-secret}
       - MYSQL_ROOT_PASSWORD=${DB_PASSWORD:-secret}
+  node:
+    build:
+      context: .
+      dockerfile: ./infra/docker/node/Dockerfile
+      args:
+        - UID=${UID:-1000}
+        - GID=${GID:-1000}
+    volumes:
+      - type: bind
+        source: ./src
+        target: /src
+    tty: true
+    depends_on:
+      - app
+    ports:
+      - target: 3000
+        published: ${NODE_PUBLISHED_PORT:-3000}
+        protocol: tcp
+        mode: host
