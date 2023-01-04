@@ -1,4 +1,4 @@
-FROM nginx:1.20
+FROM nginx:1.23.3-alpine
 
 WORKDIR /data
 
