@@ -34,7 +34,7 @@ updates:
     schedule:
       interval: "weekly"
       timezone: "Asia/Tokyo"
-      ignore:
+    ignore:
       - dependency-name: "node"
         versions: ["~>19.0"]
   - package-ecosystem: "docker"
