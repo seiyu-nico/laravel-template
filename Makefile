@@ -12,23 +12,11 @@ create-project:
 	docker compose exec app chmod -R 777 storage bootstrap/cache
 install-recommend-packages:
 	docker compose exec app composer require doctrine/dbal
-	docker compose exec app composer require --dev barryvdh/laravel-ide-helper
+	@make install-packages-laravel-ide-helper
 	docker compose exec app composer require --dev barryvdh/laravel-debugbar
 	docker compose exec app php artisan vendor:publish --provider="Barryvdh\Debugbar\ServiceProvider"
 	@make install-packages-laravel-pint
 	@make install-packages-laravel-code-style
-install-packages-laravel-pint:
-	docker compose exec app composer require laravel/pint --dev
-	cp ./src/composer.json ./src/composer.json.tmp
-	jq --indent 4 '.scripts |= .+{"pint": "./vendor/bin/pint -v", "check-pint": "./vendor/bin/pint --test"}' ./src/composer.json.tmp  > ./src/composer.json
-	rm -f ./src/composer.json.tmp
-install-packages-laravel-code-style:
-	docker compose exec app composer require jubeki/laravel-code-style --dev
-	docker compose exec app php artisan vendor:publish --provider="Jubeki\LaravelCodeStyle\ServiceProvider"
-	echo '.php-cs-fixer.cache' >> ./src/.gitignore
-	cp ./src/composer.json ./src/composer.json.tmp
-	jq --indent 4 '.scripts |= .+{"fix-style": "php-cs-fixer fix", "check-style": "php-cs-fixer fix --dry-run --diff"}' ./src/composer.json.tmp  > ./src/composer.json
-	rm -f ./src/composer.json.tmp
 init:
 	docker compose up -d --build
 	docker compose exec app composer install
@@ -115,3 +103,18 @@ fix-style:
 	docker compose exec app composer fix-style
 check-style:
 	docker compose exec app composer check-style
+install-packages-laravel-pint:
+	docker compose exec app composer require laravel/pint --dev
+	cp ./src/composer.json ./src/composer.json.tmp
+	jq --indent 4 '.scripts |= .+{"pint": "./vendor/bin/pint -v", "check-pint": "./vendor/bin/pint --test"}' ./src/composer.json.tmp  > ./src/composer.json
+	rm -f ./src/composer.json.tmp
+install-packages-laravel-code-style:
+	docker compose exec app composer require jubeki/laravel-code-style --dev
+	docker compose exec app php artisan vendor:publish --provider="Jubeki\LaravelCodeStyle\ServiceProvider"
+	echo '.php-cs-fixer.cache' >> ./src/.gitignore
+	cp ./src/composer.json ./src/composer.json.tmp
+	jq --indent 4 '.scripts |= .+{"fix-style": "php-cs-fixer fix", "check-style": "php-cs-fixer fix --dry-run --diff"}' ./src/composer.json.tmp  > ./src/composer.json
+	rm -f ./src/composer.json.tmp
+install-packages-laravel-ide-helper:
+	docker compose exec app composer require --dev barryvdh/laravel-ide-helper
+	@make ide-helper
