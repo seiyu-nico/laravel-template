@@ -1,4 +1,4 @@
-FROM node:18.4-bullseye-slim
+FROM node:18.12-bullseye-slim
 LABEL maintainer "seiyu-nico <yuseiishii141+docker@gmail.com>"
 
 WORKDIR /src
