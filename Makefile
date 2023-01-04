@@ -2,26 +2,33 @@ up:
 	docker compose up -d
 build:
 	docker compose build --no-cache --force-rm
-laravel-install:
-	docker compose exec app composer create-project --prefer-dist laravel/laravel .
 create-project:
-	mkdir -p src
 	@make build
 	@make up
-	@make laravel-install
+	rm -f src/.gitignore
+	docker compose exec app composer create-project --prefer-dist laravel/laravel .
 	docker compose exec app php artisan key:generate
 	docker compose exec app php artisan storage:link
 	docker compose exec app chmod -R 777 storage bootstrap/cache
-	@make fresh
 install-recommend-packages:
 	docker compose exec app composer require doctrine/dbal
-	docker compose exec app composer require --dev ucan-lab/laravel-dacapo
 	docker compose exec app composer require --dev barryvdh/laravel-ide-helper
-	docker compose exec app composer require --dev beyondcode/laravel-dump-server
 	docker compose exec app composer require --dev barryvdh/laravel-debugbar
-	docker compose exec app composer require --dev roave/security-advisories:dev-master
-	docker compose exec app php artisan vendor:publish --provider="BeyondCode\DumpServer\DumpServerServiceProvider"
 	docker compose exec app php artisan vendor:publish --provider="Barryvdh\Debugbar\ServiceProvider"
+	@make install-packages-laravel-pint
+	@make install-packages-laravel-code-style
+install-packages-laravel-pint:
+	docker compose exec app composer require laravel/pint --dev
+	cp ./src/composer.json ./src/composer.json.tmp
+	jq --indent 4 '.scripts |= .+{"pint": "./vendor/bin/pint -v", "check-pint": "./vendor/bin/pint --test"}' ./src/composer.json.tmp  > ./src/composer.json
+	rm -f ./src/composer.json.tmp
+install-packages-laravel-code-style:
+	docker compose exec app composer require jubeki/laravel-code-style --dev
+	docker compose exec app php artisan vendor:publish --provider="Jubeki\LaravelCodeStyle\ServiceProvider"
+	echo '.php-cs-fixer.cache' >> ./src/.gitignore
+	cp ./src/composer.json ./src/composer.json.tmp
+	jq --indent 4 '.scripts |= .+{"fix-style": "php-cs-fixer fix", "check-style": "php-cs-fixer fix --dry-run --diff"}' ./src/composer.json.tmp  > ./src/composer.json
+	rm -f ./src/composer.json.tmp
 init:
 	docker compose up -d --build
 	docker compose exec app composer install
@@ -29,7 +36,6 @@ init:
 	docker compose exec app php artisan key:generate
 	docker compose exec app php artisan storage:link
 	docker compose exec app chmod -R 777 storage bootstrap/cache
-	@make fresh
 remake:
 	@make destroy
 	@make init
@@ -68,12 +74,8 @@ app:
 	docker compose exec app bash
 migrate:
 	docker compose exec app php artisan migrate
-fresh:
-	docker compose exec app php artisan migrate:fresh --seed
 seed:
 	docker compose exec app php artisan db:seed
-dacapo:
-	docker compose exec app php artisan dacapo
 rollback-test:
 	docker compose exec app php artisan migrate:fresh
 	docker compose exec app php artisan migrate:refresh
@@ -104,4 +106,12 @@ ide-helper:
 	docker compose exec app php artisan clear-compiled
 	docker compose exec app php artisan ide-helper:generate
 	docker compose exec app php artisan ide-helper:meta
-	docker compose exec app php artisan ide-helper:models --nowrite
+	docker compose exec app php artisan ide-helper:models --write
+pint:
+	docker compose exec app composer pint
+check-pint:
+	docker compose exec app composer check-pint
+fix-style:
+	docker compose exec app composer fix-style
+check-style:
+	docker compose exec app composer check-style
