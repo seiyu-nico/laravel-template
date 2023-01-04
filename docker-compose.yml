@@ -38,8 +38,11 @@ services:
         mode: host
     volumes:
       - type: bind
-        source: ./db
+        source: ./db/data
         target: /var/lib/mysql
+      - type: bind
+        source: ./db/log
+        target: /var/log/mysql
     environment:
       - MYSQL_DATABASE=${DB_DATABASE:-laravel}
       - MYSQL_USER=${DB_USERNAME:-tech}
