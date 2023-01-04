@@ -1,0 +1,41 @@
+version: 2
+updates:
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "daily"
+      timezone: "Asia/Tokyo"
+
+  - package-ecosystem: "npm"
+    directory: "src/"
+    schedule:
+      interval: "weekly"
+      timezone: "Asia/Tokyo"
+
+  - package-ecosystem: "composer"
+    directory: "src"
+    schedule:
+      interval: "weekly"
+      timezone: "Asia/Tokyo"
+
+  - package-ecosystem: "docker"
+    directory: "infra/docker/nginx"
+    schedule:
+      interval: "weekly"
+      timezone: "Asia/Tokyo"
+  - package-ecosystem: "docker"
+    directory: "infra/docker/php"
+    schedule:
+      interval: "weekly"
+      timezone: "Asia/Tokyo"
+  - package-ecosystem: "docker"
+    directory: "infra/docker/node"
+    schedule:
+      interval: "weekly"
+      timezone: "Asia/Tokyo"
+  - package-ecosystem: "docker"
+    directory: "infra/docker/mysql"
+    schedule:
+      interval: "weekly"
+      timezone: "Asia/Tokyo"
