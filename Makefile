@@ -71,6 +71,8 @@ tinker:
 	docker compose exec app php artisan tinker
 test:
 	docker compose exec app php artisan test
+test-coverage:
+	docker compose exec app php artisan test --coverage
 optimize:
 	docker compose exec app php artisan optimize
 optimize-clear:

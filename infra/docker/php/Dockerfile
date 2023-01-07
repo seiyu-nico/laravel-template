@@ -28,9 +28,11 @@ RUN apt-get update \
     intl \
     pdo_mysql \
     zip \
-    bcmath
+    bcmath && \
+    pecl install xdebug && \
+    docker-php-ext-enable xdebug
 
-COPY ./infra/docker/php/php.development.ini /usr/local/etc/php/php.ini
+COPY ./infra/docker/php/php.dev.ini /usr/local/etc/php/php.ini
 
 ARG UID
 ARG GID
