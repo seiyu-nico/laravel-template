@@ -2,6 +2,8 @@ FROM php:8.2-fpm-bullseye AS base
 
 WORKDIR /src
 
+ARG ENV
+
 # timezone environment
 ENV TZ=UTC \
   # locale
@@ -28,11 +30,10 @@ RUN apt-get update \
     intl \
     pdo_mysql \
     zip \
-    bcmath && \
-    pecl install xdebug && \
-    docker-php-ext-enable xdebug
+    bcmath
 
-COPY ./infra/docker/php/php.dev.ini /usr/local/etc/php/php.ini
+COPY ./infra/docker/php/php.${ENV}.ini /usr/local/etc/php/php.ini
+COPY ./infra/docker/php/black-list.txt /usr/local/etc/php/black-list.txt
 
 ARG UID
 ARG GID
@@ -43,4 +44,11 @@ ENV USER dev
 RUN groupadd --force -g ${GID} ${USER} && \
     useradd -ms /bin/bash --no-user-group -u ${UID} -g ${GID} ${USER} && \
     chown -R ${USER}:${USER} /src
-USER ${USER}
+
+FROM base as prod
+
+FROM base as dev
+
+FROM base as local
+RUN pecl install xdebug && \
+    docker-php-ext-enable xdebug
