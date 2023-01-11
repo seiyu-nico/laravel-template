@@ -32,7 +32,7 @@ RUN apt-get update \
     zip \
     bcmath
 
-COPY ./infra/docker/php/php.${ENV}.ini /usr/local/etc/php/php.ini
+COPY ./infra/docker/php/php.ini/php.${ENV}.ini /usr/local/etc/php/php.ini
 COPY ./infra/docker/php/black-list.txt /usr/local/etc/php/black-list.txt
 
 ARG UID
