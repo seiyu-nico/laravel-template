@@ -52,3 +52,4 @@ FROM base as dev
 FROM base as local
 RUN pecl install xdebug && \
     docker-php-ext-enable xdebug
+USER ${USER}
