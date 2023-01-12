@@ -16,6 +16,7 @@ install-recommend-packages:
 	docker compose exec app composer require --dev barryvdh/laravel-debugbar
 	docker compose exec app php artisan vendor:publish --provider="Barryvdh\Debugbar\ServiceProvider"
 	@make install-packages-laravel-pint
+	@make install-packages-larastan
 init:
 	docker compose up -d --build
 	docker compose exec app composer install
@@ -104,6 +105,8 @@ fix-style:
 	docker compose exec app composer fix-style
 check-style:
 	docker compose exec app composer check-style
+phpstan:
+	docker compose exec app composer phpstan
 install-packages-laravel-pint:
 	docker compose exec app composer require laravel/pint --dev
 	if type "jq" > /dev/null 2>&1; then \
@@ -114,3 +117,10 @@ install-packages-laravel-pint:
 install-packages-laravel-ide-helper:
 	docker compose exec app composer require --dev barryvdh/laravel-ide-helper
 	@make ide-helper
+install-packages-larastan:
+	docker compose exec app composer require --dev nunomaduro/larastan
+	if type "jq" > /dev/null 2>&1; then \
+		cp ./src/composer.json ./src/composer.json.tmp; \
+		jq --indent 4 '.scripts |= .+{"phpstan": "./vendor/bin/phpstan analyse --xdebug"}' ./src/composer.json.tmp  > ./src/composer.json; \
+		rm -f ./src/composer.json.tmp; \
+	fi
