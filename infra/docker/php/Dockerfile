@@ -44,10 +44,6 @@ ENV USER dev
 
 RUN groupadd --force -g ${GID} ${USER} && \
     useradd -ms /bin/bash --no-user-group -u ${UID} -g ${GID} ${USER} && \
-    chown -R ${USER}:${USER} /src
-
-RUN groupadd --force -g ${GID} ${USER} && \
-    useradd -ms /bin/bash --no-user-group -u ${UID} -g ${GID} ${USER} && \
     mkdir /composer && \
     chown -R ${USER}:${USER} /src && \
     chown -R ${USER}:${USER} /composer
