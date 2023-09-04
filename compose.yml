@@ -15,43 +15,27 @@ services:
       - type: bind
         source: ./infra/docker/php/php.ini/php.${ENV-local}.ini
         target: /usr/local/etc/php/php.ini
+    networks:
+      - default
+      - dev-container
   web:
     build:
       context: .
       dockerfile: ./infra/docker/nginx/Dockerfile
-    ports:
-      - target: 80
-        published: ${WEB_PUBLISHED_PORT:-80}
-        protocol: tcp
-        mode: host
     volumes:
       - type: bind
         source: ./src
         target: /src
-  db:
-    build:
-      context: .
-      dockerfile: ./infra/docker/mysql/Dockerfile
-      args:
-        - UID=${UID:-1000}
-        - GID=${GID:-1000}
-    ports:
-      - target: 3306
-        published: ${DB_PUBLISHED_PORT:-3306}
-        protocol: tcp
-        mode: host
-    volumes:
-      - type: bind
-        source: ./db/data
-        target: /var/lib/mysql
-      - type: bind
-        source: ./db/log
-        target: /var/log/mysql
-    environment:
-      - MYSQL_DATABASE=${DB_DATABASE:-laravel}
-      - MYSQL_USER=${DB_USERNAME:-tech}
-      - MYSQL_PASSWORD=${DB_PASSWORD:-password}
-      - MYSQL_ROOT_PASSWORD=${DB_PASSWORD:-password}
+    networks:
+      - default
+      - web
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=web"
+      - "traefik.http.routers.${SERVICE_NAME}.rule=Host(`${WEB_URL}`)"
+      - "traefik.http.routers.${SERVICE_NAME}.tls=true"
+      - "traefik.http.routers.${SERVICE_NAME}.tls.certresolver=zerossl"
+      - "traefik.http.services.${SERVICE_NAME}.loadbalancer.server.port=80"
   node:
     build:
       context: .
@@ -71,3 +55,9 @@ services:
         published: ${NODE_PUBLISHED_PORT:-3000}
         protocol: tcp
         mode: host
+networks:
+  web:
+    external: true
+  dev-container:
+    external: true
+
