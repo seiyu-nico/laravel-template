@@ -36,25 +36,6 @@ services:
       - "traefik.http.routers.${SERVICE_NAME}.tls=true"
       - "traefik.http.routers.${SERVICE_NAME}.tls.certresolver=zerossl"
       - "traefik.http.services.${SERVICE_NAME}.loadbalancer.server.port=80"
-  node:
-    build:
-      context: .
-      dockerfile: ./infra/docker/node/Dockerfile
-      args:
-        - UID=${UID:-1000}
-        - GID=${GID:-1000}
-    volumes:
-      - type: bind
-        source: ./src
-        target: /src
-    tty: true
-    depends_on:
-      - app
-    ports:
-      - target: 3000
-        published: ${NODE_PUBLISHED_PORT:-3000}
-        protocol: tcp
-        mode: host
 networks:
   web:
     external: true
