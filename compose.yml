@@ -13,7 +13,7 @@ services:
         source: ./src
         target: /src
       - type: bind
-        source: ./infra/docker/php/php.ini/php.${ENV-local}.ini
+        source: ./infra/docker/php/php.ini/php.${ENV:-local}.ini
         target: /usr/local/etc/php/php.ini
     networks:
       - default
