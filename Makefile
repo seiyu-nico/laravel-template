@@ -58,7 +58,6 @@ log-db-watch:
 	docker compose logs --follow db
 web:
 	docker compose exec web bash
-.PHONY: app
 app:
 	docker compose exec app bash
 migrate:
@@ -111,9 +110,9 @@ phpstan:
 install-packages-laravel-pint:
 	docker compose exec app composer require laravel/pint --dev
 	if type "jq" > /dev/null 2>&1; then \
-		cp ./composer.json ./composer.json.tmp; \
-		jq --indent 4 '.scripts |= .+{"pint": "./vendor/bin/pint -v", "check-pint": "./vendor/bin/pint --test"}' ./composer.json.tmp  > ./composer.json; \
-		rm -f ./composer.json.tmp; \
+		cp ./src/composer.json ./src/composer.json.tmp; \
+		jq --indent 4 '.scripts |= .+{"pint": "./vendor/bin/pint -v", "check-pint": "./vendor/bin/pint --test"}' ./src/composer.json.tmp  > ./src/composer.json; \
+		rm -f ./src/composer.json.tmp; \
 	fi
 install-packages-laravel-ide-helper:
 	docker compose exec app composer require --dev barryvdh/laravel-ide-helper
@@ -121,7 +120,7 @@ install-packages-laravel-ide-helper:
 install-packages-larastan:
 	docker compose exec app composer require --dev nunomaduro/larastan
 	if type "jq" > /dev/null 2>&1; then \
-		cp ./composer.json ./composer.json.tmp; \
-		jq --indent 4 '.scripts |= .+{"phpstan": "./vendor/bin/phpstan analyse --xdebug"}' ./composer.json.tmp  > ./composer.json; \
-		rm -f ./composer.json.tmp; \
+		cp ./src/composer.json ./src/composer.json.tmp; \
+		jq --indent 4 '.scripts |= .+{"phpstan": "./vendor/bin/phpstan analyse --xdebug"}' ./src/composer.json.tmp  > ./src/composer.json; \
+		rm -f ./src/composer.json.tmp; \
 	fi
