@@ -10,7 +10,7 @@ services:
       target: ${ENV:-local}
     volumes:
       - type: bind
-        source: ./src
+        source: ./
         target: /src
       - type: bind
         source: ./infra/docker/php/php.ini/php.${ENV:-local}.ini
@@ -24,7 +24,7 @@ services:
       dockerfile: ./infra/docker/nginx/Dockerfile
     volumes:
       - type: bind
-        source: ./src
+        source: ./
         target: /src
     networks:
       - default
