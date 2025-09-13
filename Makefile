@@ -118,7 +118,7 @@ install-packages-laravel-ide-helper:
 	docker compose exec app composer require --dev barryvdh/laravel-ide-helper
 	@make ide-helper
 install-packages-larastan:
-	docker compose exec app composer require --dev nunomaduro/larastan
+	docker compose exec app composer require --dev "larastan/larastan:^3.0"
 	if type "jq" > /dev/null 2>&1; then \
 		cp ./src/composer.json ./src/composer.json.tmp; \
 		jq --indent 4 '.scripts |= .+{"phpstan": "./vendor/bin/phpstan analyse --xdebug"}' ./src/composer.json.tmp  > ./src/composer.json; \
