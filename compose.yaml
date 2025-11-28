@@ -11,31 +11,24 @@ services:
     volumes:
       - type: bind
         source: ./src
-        target: /src
-      - type: bind
-        source: ./infra/docker/php/php.ini/php.${ENV:-local}.ini
-        target: /usr/local/etc/php/php.ini
+        target: /app
+    environment:
+      - SERVER_NAME=:80
+      - CADDY_GLOBAL_OPTIONS=auto_https off
+      - OCTANE_SERVER=frankenphp
+      - SUPERVISOR_PHP_COMMAND=/usr/bin/php -d variables_order=EGPCS /app/artisan octane:start --server=frankenphp --host=0.0.0.0 --port=80
     networks:
       - default
       - dev-container
-  web:
-    build:
-      context: .
-      dockerfile: ./infra/docker/nginx/Dockerfile
-    volumes:
-      - type: bind
-        source: ./src
-        target: /src
-    networks:
-      - default
       - web
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=web"
-      - "traefik.http.routers.${SERVICE_NAME}.rule=Host(`${WEB_URL}`)"
+      - "traefik.http.routers.${SERVICE_NAME}.rule=Host(`${APP_HOST}`)"
       - "traefik.http.routers.${SERVICE_NAME}.tls=true"
       - "traefik.http.routers.${SERVICE_NAME}.tls.certresolver=zerossl"
       - "traefik.http.services.${SERVICE_NAME}.loadbalancer.server.port=80"
+
 networks:
   web:
     external: true

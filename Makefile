@@ -1,126 +1,137 @@
+# Docker commands
+DOCKER_COMPOSE := docker compose
+DOCKER_EXEC := $(DOCKER_COMPOSE) exec app
+CONTAINER_NAME := app
+
+.PHONY: up build create-project install-recommend-packages init remake stop down down-v restart destroy ps logs logs-watch log-app log-app-watch log-db log-db-watch app migrate seed rollback-test tinker test test-coverage optimize optimize-clear cache cache-clear db sql ide-helper pint check-pint phpstan install-packages-laravel-pint install-packages-laravel-ide-helper install-packages-larastan octane-start octane-stop octane-reload octane-status octane-watch
+
 up:
-	docker compose up -d
+	$(DOCKER_COMPOSE) up -d
 build:
-	docker compose build --no-cache --force-rm
+	$(DOCKER_COMPOSE) build --no-cache --force-rm
 create-project:
 	@make build
 	@make up
 	rm -f src/.gitignore
-	docker compose exec app composer create-project --prefer-dist laravel/laravel .
-	docker compose exec app php artisan key:generate
-	docker compose exec app php artisan storage:link
-	docker compose exec app chmod -R 777 storage bootstrap/cache
+	$(DOCKER_EXEC) composer create-project --prefer-dist laravel/laravel .
+	$(DOCKER_EXEC) php artisan key:generate
+	$(DOCKER_EXEC) php artisan storage:link
+	$(DOCKER_EXEC) chmod -R 777 storage bootstrap/cache
 install-recommend-packages:
-	docker compose exec app composer require doctrine/dbal
+	$(DOCKER_EXEC) composer require doctrine/dbal
 	@make install-packages-laravel-ide-helper
-	docker compose exec app composer require --dev barryvdh/laravel-debugbar
-	docker compose exec app php artisan vendor:publish --provider="Barryvdh\Debugbar\ServiceProvider"
+	$(DOCKER_EXEC) composer require --dev barryvdh/laravel-debugbar
+	$(DOCKER_EXEC) php artisan vendor:publish --provider="Barryvdh\Debugbar\ServiceProvider"
 	@make install-packages-laravel-pint
 	@make install-packages-larastan
 init:
-	docker compose up -d --build
-	docker compose exec app composer install
-	docker compose exec app cp .env.example .env
-	docker compose exec app php artisan key:generate
-	docker compose exec app php artisan storage:link
-	docker compose exec app chmod -R 777 storage bootstrap/cache
+	$(DOCKER_COMPOSE) up -d --build
+	$(DOCKER_EXEC) composer install
+	$(DOCKER_EXEC) cp .env.example .env
+	$(DOCKER_EXEC) php artisan key:generate
+	$(DOCKER_EXEC) php artisan storage:link
+	$(DOCKER_EXEC) chmod -R 777 storage bootstrap/cache
 remake:
 	@make destroy
 	@make init
 stop:
-	docker compose stop
+	$(DOCKER_COMPOSE) stop
 down:
-	docker compose down --remove-orphans
+	$(DOCKER_COMPOSE) down --remove-orphans
 down-v:
-	docker compose down --remove-orphans --volumes
+	$(DOCKER_COMPOSE) down --remove-orphans --volumes
 restart:
 	@make down
 	@make up
 destroy:
-	docker compose down --rmi all --volumes --remove-orphans
+	$(DOCKER_COMPOSE) down --rmi all --volumes --remove-orphans
 ps:
-	docker compose ps
+	$(DOCKER_COMPOSE) ps
 logs:
-	docker compose logs
+	$(DOCKER_COMPOSE) logs
 logs-watch:
-	docker compose logs --follow
-log-web:
-	docker compose logs web
-log-web-watch:
-	docker compose logs --follow web
+	$(DOCKER_COMPOSE) logs --follow
 log-app:
-	docker compose logs app
+	$(DOCKER_COMPOSE) logs $(CONTAINER_NAME)
 log-app-watch:
-	docker compose logs --follow app
+	$(DOCKER_COMPOSE) logs --follow $(CONTAINER_NAME)
 log-db:
 	docker compose logs db
 log-db-watch:
 	docker compose logs --follow db
-web:
-	docker compose exec web bash
 app:
-	docker compose exec app bash
+	$(DOCKER_EXEC) bash
 migrate:
-	docker compose exec app php artisan migrate
+	$(DOCKER_EXEC) php artisan migrate
 seed:
-	docker compose exec app php artisan db:seed
+	$(DOCKER_EXEC) php artisan db:seed
 rollback-test:
-	docker compose exec app php artisan migrate:fresh
-	docker compose exec app php artisan migrate:refresh
+	$(DOCKER_EXEC) php artisan migrate:fresh
+	$(DOCKER_EXEC) php artisan migrate:refresh
 tinker:
-	docker compose exec app php artisan tinker
+	$(DOCKER_EXEC) php artisan tinker
 test:
-	docker compose exec app php artisan test
+	$(DOCKER_EXEC) php artisan test
 test-coverage:
-	docker compose exec app php artisan test --coverage
+	$(DOCKER_EXEC) php artisan test --coverage
 optimize:
-	docker compose exec app php artisan optimize
+	$(DOCKER_EXEC) php artisan optimize
 optimize-clear:
-	docker compose exec app php artisan optimize:clear
+	$(DOCKER_EXEC) php artisan optimize:clear
 cache:
-	docker compose exec app composer dump-autoload -o
+	$(DOCKER_EXEC) composer dump-autoload -o
 	@make optimize
-	docker compose exec app php artisan event:cache
-	docker compose exec app php artisan view:cache
+	$(DOCKER_EXEC) php artisan event:cache
+	$(DOCKER_EXEC) php artisan view:cache
 cache-clear:
-	docker compose exec app composer clear-cache
+	$(DOCKER_EXEC) composer clear-cache
 	@make optimize-clear
-	docker compose exec app php artisan event:clear
+	$(DOCKER_EXEC) php artisan event:clear
 db:
-	docker compose exec db bash
+	$(DOCKER_COMPOSE) exec db bash
 sql:
-	docker compose exec db bash -c 'mysql -u $$MYSQL_USER -p$$MYSQL_PASSWORD $$MYSQL_DATABASE'
+	$(DOCKER_COMPOSE) exec db bash -c 'mysql -u $$MYSQL_USER -p$$MYSQL_PASSWORD $$MYSQL_DATABASE'
 redis:
-	docker compose exec redis redis-cli
+	$(DOCKER_COMPOSE) exec redis redis-cli
 ide-helper:
-	docker compose exec app php artisan clear-compiled
-	docker compose exec app php artisan ide-helper:generate
-	docker compose exec app php artisan ide-helper:meta
-	docker compose exec app php artisan ide-helper:models --write
+	$(DOCKER_EXEC) php artisan clear-compiled
+	$(DOCKER_EXEC) php artisan ide-helper:generate
+	$(DOCKER_EXEC) php artisan ide-helper:meta
+	$(DOCKER_EXEC) php artisan ide-helper:models --write
 pint:
-	docker compose exec app composer pint
+	$(DOCKER_EXEC) composer pint
 check-pint:
-	docker compose exec app composer check-pint
+	$(DOCKER_EXEC) composer check-pint
 fix-style:
-	docker compose exec app composer fix-style
+	$(DOCKER_EXEC) composer fix-style
 check-style:
-	docker compose exec app composer check-style
+	$(DOCKER_EXEC) composer check-style
 phpstan:
-	docker compose exec app composer phpstan
+	$(DOCKER_EXEC) composer phpstan
 install-packages-laravel-pint:
-	docker compose exec app composer require laravel/pint --dev
+	$(DOCKER_EXEC) composer require laravel/pint --dev
 	if type "jq" > /dev/null 2>&1; then \
-		cp ./src/composer.json ./src/composer.json.tmp; \
-		jq --indent 4 '.scripts |= .+{"pint": "./vendor/bin/pint -v", "check-pint": "./vendor/bin/pint --test"}' ./src/composer.json.tmp  > ./src/composer.json; \
-		rm -f ./src/composer.json.tmp; \
+		cp ./composer.json ./composer.json.tmp; \
+		jq --indent 4 '.scripts |= .+{"pint": "./vendor/bin/pint -v", "check-pint": "./vendor/bin/pint --test"}' ./composer.json.tmp  > ./composer.json; \
+		rm -f ./composer.json.tmp; \
 	fi
 install-packages-laravel-ide-helper:
-	docker compose exec app composer require --dev barryvdh/laravel-ide-helper
+	$(DOCKER_EXEC) composer require --dev barryvdh/laravel-ide-helper
 	@make ide-helper
 install-packages-larastan:
-	docker compose exec app composer require --dev "larastan/larastan:^3.0"
+	$(DOCKER_EXEC) composer require --dev "larastan/larastan:^3.0"
 	if type "jq" > /dev/null 2>&1; then \
-		cp ./src/composer.json ./src/composer.json.tmp; \
-		jq --indent 4 '.scripts |= .+{"phpstan": "./vendor/bin/phpstan analyse --xdebug"}' ./src/composer.json.tmp  > ./src/composer.json; \
-		rm -f ./src/composer.json.tmp; \
+		cp ./composer.json ./composer.json.tmp; \
+		jq --indent 4 '.scripts |= .+{"phpstan": "./vendor/bin/phpstan analyse --xdebug"}' ./composer.json.tmp  > ./composer.json; \
+		rm -f ./composer.json.tmp; \
 	fi
+octane-start:
+	$(DOCKER_EXEC) php artisan octane:start --server=frankenphp --host=0.0.0.0 --port=80
+octane-stop:
+	$(DOCKER_EXEC) php artisan octane:stop
+octane-reload:
+	$(DOCKER_EXEC) php artisan octane:reload
+octane-status:
+	$(DOCKER_EXEC) php artisan octane:status
+octane-watch:
+	$(DOCKER_EXEC) php artisan octane:start --server=frankenphp --host=0.0.0.0 --port=80 --watch
