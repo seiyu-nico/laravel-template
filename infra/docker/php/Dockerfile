@@ -1,6 +1,6 @@
-FROM php:8.4.5-fpm-bullseye AS base
+FROM dunglas/frankenphp:1-php8.4-bookworm AS base
 
-WORKDIR /src
+WORKDIR /app
 
 ARG ENV
 
@@ -12,47 +12,64 @@ ENV TZ=UTC \
     COMPOSER_ALLOW_SUPERUSER=1 \
     COMPOSER_HOME=/composer
 
-COPY --from=composer:2.2 /usr/bin/composer /usr/bin/composer
+COPY --from=composer:2.8 /usr/bin/composer /usr/bin/composer
 
+# Install system dependencies and PHP extensions
 RUN apt-get update \
     && apt-get -y install --no-install-recommends \
     locales \
     git \
     unzip \
-    libzip-dev \
-    libicu-dev \
-    libonig-dev \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* \
-    && locale-gen en_US.UTF-8 \
+    && locale-gen en_US.UTF-8 ja_JP.UTF-8 \
     && localedef -f UTF-8 -i en_US en_US.UTF-8 \
-    && docker-php-ext-install \
+    && install-php-extensions \
     intl \
     pdo_mysql \
     zip \
     bcmath \
-    opcache
-
-COPY ./infra/docker/php/php.ini/php.${ENV}.ini /usr/local/etc/php/php.ini
-COPY ./infra/docker/php/black-list.txt /usr/local/etc/php/black-list.txt
+    opcache \
+    pcntl
 
 ARG UID
 ARG GID
-ENV UID ${UID}
-ENV GID ${GID}
-ENV USER dev
+ENV UID=${UID}
+ENV GID=${GID}
+ENV USER=dev
 
 RUN groupadd --force -g ${GID} ${USER} && \
     useradd -ms /bin/bash --no-user-group -u ${UID} -g ${GID} ${USER} && \
-    mkdir /composer && \
-    chown -R ${USER}:${USER} /src && \
-    chown -R ${USER}:${USER} /composer
+    mkdir -p /composer && \
+    mkdir -p /data/caddy && \
+    mkdir -p /config/caddy && \
+    chown -R ${USER}:${USER} /app && \
+    chown -R ${USER}:${USER} /composer && \
+    chown -R ${USER}:${USER} /data/caddy && \
+    chown -R ${USER}:${USER} /config/caddy
 
-FROM base as prod
+# Production stage
+FROM base AS prod
 
-FROM base as dev
+# Copy PHP configuration
+COPY --chown=${USER}:${USER} ./infra/docker/php/php.ini/php.prod.ini /usr/local/etc/php/conf.d/custom.ini
 
-FROM base as local
-RUN pecl install xdebug && \
-    docker-php-ext-enable xdebug
+USER ${USER}
+
+# Development stage
+FROM base AS dev
+
+# Copy PHP configuration
+COPY --chown=${USER}:${USER} ./infra/docker/php/php.ini/php.dev.ini /usr/local/etc/php/conf.d/custom.ini
+
+USER ${USER}
+
+# Local stage with Xdebug
+FROM base AS local
+
+RUN install-php-extensions xdebug
+
+# Copy PHP configuration
+COPY --chown=${USER}:${USER} ./infra/docker/php/php.ini/php.local.ini /usr/local/etc/php/conf.d/custom.ini
+
 USER ${USER}
