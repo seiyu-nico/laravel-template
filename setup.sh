@@ -149,6 +149,11 @@ echo ""
 read -r -p "推奨開発パッケージをインストールしますか? (IDE Helper, Debugbar, Pint, Larastan) [Y/n]: " INSTALL_PACKAGES
 INSTALL_PACKAGES=${INSTALL_PACKAGES:-Y}
 
+# setup.shの削除確認
+echo ""
+read -r -p "セットアップ完了後にsetup.shを削除しますか? [y/N]: " DELETE_SETUP
+DELETE_SETUP=${DELETE_SETUP:-N}
+
 # 確認
 echo ""
 print_header "設定内容の確認"
@@ -161,6 +166,11 @@ if [[ $INSTALL_PACKAGES =~ ^[Yy]$ ]]; then
     echo "推奨パッケージ:        インストールする"
 else
     echo "推奨パッケージ:        インストールしない"
+fi
+if [[ $DELETE_SETUP =~ ^[Yy]$ ]]; then
+    echo "setup.sh削除:          削除する"
+else
+    echo "setup.sh削除:          削除しない"
 fi
 echo ""
 print_info "※ 環境は local (Xdebug有効) で作成されます"
@@ -435,3 +445,9 @@ echo "  - Traefik経由: https://$APP_HOST"
 echo ""
 print_warning "注意: Traefikが起動していることを確認してください"
 echo ""
+
+# setup.shの削除
+if [[ $DELETE_SETUP =~ ^[Yy]$ ]]; then
+    rm -f setup.sh
+    print_success "setup.shを削除しました"
+fi
