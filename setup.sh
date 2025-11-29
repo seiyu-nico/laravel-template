@@ -211,7 +211,6 @@ print_success "compose.yamlのコンテナ名を変更しました"
 print_info "Makefileのコンテナ名を 'app' から '$CONTAINER_NAME' に変更しています..."
 sed -i.bak "s/^DOCKER_EXEC := \$(DOCKER_COMPOSE) exec app$/DOCKER_EXEC := \$(DOCKER_COMPOSE) exec $CONTAINER_NAME/" Makefile
 sed -i.bak "s/^CONTAINER_NAME := app$/CONTAINER_NAME := $CONTAINER_NAME/" Makefile
-sed -i.bak "s/^app:/$CONTAINER_NAME:/" Makefile
 sed -i.bak "s/^log-app:/log-$CONTAINER_NAME:/" Makefile
 sed -i.bak "s/^log-app-watch:/log-$CONTAINER_NAME-watch:/" Makefile
 rm -f Makefile.bak
@@ -429,7 +428,7 @@ echo "  - 環境: local (Xdebug有効)"
 echo ""
 print_info "便利なコマンド:"
 echo "  - ログ表示:           make logs"
-echo "  - コンテナにアクセス: make $CONTAINER_NAME"
+echo "  - コンテナにアクセス: make app"
 echo "  - コンテナ停止:       make down"
 echo "  - コンテナ再起動:     make restart"
 echo ""
