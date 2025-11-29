@@ -451,3 +451,10 @@ if [[ $DELETE_SETUP =~ ^[Yy]$ ]]; then
     rm -f setup.sh
     print_success "setup.shを削除しました"
 fi
+
+print_header "次のステップ"
+print_info "gitリポジトリの初期化:"
+echo "  rm -rf .git && git init"
+echo "  git add ."
+echo "  git commit -m 'Initial commit'"
+echo ""
