@@ -1,0 +1,306 @@
+version: '3'
+
+vars:
+  DOCKER_COMPOSE: docker compose
+  CONTAINER_NAME: app
+  DOCKER_EXEC: "{{.DOCKER_COMPOSE}} exec {{.CONTAINER_NAME}}"
+
+tasks:
+  # ===================
+  # Docker commands
+  # ===================
+  up:
+    desc: Start containers
+    cmds:
+      - "{{.DOCKER_COMPOSE}} up -d"
+
+  build:
+    desc: Build images (no cache)
+    cmds:
+      - "{{.DOCKER_COMPOSE}} build --no-cache --force-rm"
+
+  create-project:
+    desc: Create new Laravel project
+    cmds:
+      - task: build
+      - task: up
+      - rm -f src/.gitignore
+      - "{{.DOCKER_EXEC}} composer create-project --prefer-dist laravel/laravel ."
+      - "{{.DOCKER_EXEC}} php artisan key:generate"
+      - "{{.DOCKER_EXEC}} php artisan storage:link"
+      - "{{.DOCKER_EXEC}} chmod -R 777 storage bootstrap/cache"
+
+  install-recommend-packages:
+    desc: Install recommended packages
+    cmds:
+      - "{{.DOCKER_EXEC}} composer require doctrine/dbal"
+      - task: install-packages-laravel-ide-helper
+      - "{{.DOCKER_EXEC}} composer require --dev barryvdh/laravel-debugbar"
+      - "{{.DOCKER_EXEC}} php artisan vendor:publish --provider=\"Barryvdh\\Debugbar\\ServiceProvider\""
+      - task: install-packages-laravel-pint
+      - task: install-packages-larastan
+
+  init:
+    desc: Initialize existing project
+    cmds:
+      - "{{.DOCKER_COMPOSE}} up -d --build"
+      - "{{.DOCKER_EXEC}} composer install"
+      - "{{.DOCKER_EXEC}} cp .env.example .env"
+      - "{{.DOCKER_EXEC}} php artisan key:generate"
+      - "{{.DOCKER_EXEC}} php artisan storage:link"
+      - "{{.DOCKER_EXEC}} chmod -R 777 storage bootstrap/cache"
+
+  remake:
+    desc: Destroy and reinitialize
+    cmds:
+      - task: destroy
+      - task: init
+
+  stop:
+    desc: Stop containers
+    cmds:
+      - "{{.DOCKER_COMPOSE}} stop"
+
+  down:
+    desc: Stop and remove containers
+    cmds:
+      - "{{.DOCKER_COMPOSE}} down --remove-orphans"
+
+  down-v:
+    desc: Stop and remove containers with volumes
+    cmds:
+      - "{{.DOCKER_COMPOSE}} down --remove-orphans --volumes"
+
+  restart:
+    desc: Restart containers
+    cmds:
+      - task: down
+      - task: up
+
+  destroy:
+    desc: Destroy all (images, volumes, containers)
+    cmds:
+      - "{{.DOCKER_COMPOSE}} down --rmi all --volumes --remove-orphans"
+
+  ps:
+    desc: Show container status
+    cmds:
+      - "{{.DOCKER_COMPOSE}} ps"
+
+  # ===================
+  # Logs
+  # ===================
+  logs:
+    desc: Show all logs
+    cmds:
+      - "{{.DOCKER_COMPOSE}} logs"
+
+  logs-watch:
+    desc: Show all logs (follow)
+    cmds:
+      - "{{.DOCKER_COMPOSE}} logs --follow"
+
+  log-app:
+    desc: Show app container logs
+    cmds:
+      - "{{.DOCKER_COMPOSE}} logs {{.CONTAINER_NAME}}"
+
+  log-app-watch:
+    desc: Show app container logs (follow)
+    cmds:
+      - "{{.DOCKER_COMPOSE}} logs --follow {{.CONTAINER_NAME}}"
+
+  log-db:
+    desc: Show db container logs
+    cmds:
+      - "{{.DOCKER_COMPOSE}} logs db"
+
+  log-db-watch:
+    desc: Show db container logs (follow)
+    cmds:
+      - "{{.DOCKER_COMPOSE}} logs --follow db"
+
+  # ===================
+  # Container access
+  # ===================
+  app:
+    desc: Enter app container
+    interactive: true
+    cmds:
+      - "{{.DOCKER_EXEC}} bash"
+
+  db:
+    desc: Enter db container
+    interactive: true
+    cmds:
+      - "{{.DOCKER_COMPOSE}} exec db bash"
+
+  sql:
+    desc: Open MySQL client
+    interactive: true
+    cmds:
+      - "{{.DOCKER_COMPOSE}} exec db bash -c 'mysql -u $MYSQL_USER -p$MYSQL_PASSWORD $MYSQL_DATABASE'"
+
+  redis:
+    desc: Open Redis CLI
+    interactive: true
+    cmds:
+      - "{{.DOCKER_COMPOSE}} exec redis redis-cli"
+
+  # ===================
+  # Laravel Artisan
+  # ===================
+  migrate:
+    desc: Run migrations
+    cmds:
+      - "{{.DOCKER_EXEC}} php artisan migrate"
+
+  seed:
+    desc: Run seeders
+    cmds:
+      - "{{.DOCKER_EXEC}} php artisan db:seed"
+
+  rollback-test:
+    desc: Test rollback (fresh + refresh)
+    cmds:
+      - "{{.DOCKER_EXEC}} php artisan migrate:fresh"
+      - "{{.DOCKER_EXEC}} php artisan migrate:refresh"
+
+  tinker:
+    desc: Open Laravel Tinker
+    interactive: true
+    cmds:
+      - "{{.DOCKER_EXEC}} php artisan tinker"
+
+  test:
+    desc: Run tests
+    cmds:
+      - "{{.DOCKER_EXEC}} php artisan test"
+
+  test-coverage:
+    desc: Run tests with coverage
+    cmds:
+      - "{{.DOCKER_EXEC}} php artisan test --coverage"
+
+  # ===================
+  # Cache & Optimization
+  # ===================
+  optimize:
+    desc: Optimize application
+    cmds:
+      - "{{.DOCKER_EXEC}} php artisan optimize"
+
+  optimize-clear:
+    desc: Clear optimization cache
+    cmds:
+      - "{{.DOCKER_EXEC}} php artisan optimize:clear"
+
+  cache:
+    desc: Cache all (autoload, config, events, views)
+    cmds:
+      - "{{.DOCKER_EXEC}} composer dump-autoload -o"
+      - task: optimize
+      - "{{.DOCKER_EXEC}} php artisan event:cache"
+      - "{{.DOCKER_EXEC}} php artisan view:cache"
+
+  cache-clear:
+    desc: Clear all cache
+    cmds:
+      - "{{.DOCKER_EXEC}} composer clear-cache"
+      - task: optimize-clear
+      - "{{.DOCKER_EXEC}} php artisan event:clear"
+
+  # ===================
+  # Code Quality
+  # ===================
+  ide-helper:
+    desc: Generate IDE helper files
+    cmds:
+      - "{{.DOCKER_EXEC}} php artisan clear-compiled"
+      - "{{.DOCKER_EXEC}} php artisan ide-helper:generate"
+      - "{{.DOCKER_EXEC}} php artisan ide-helper:meta"
+      - "{{.DOCKER_EXEC}} php artisan ide-helper:models --write"
+
+  pint:
+    desc: Run Laravel Pint
+    cmds:
+      - "{{.DOCKER_EXEC}} composer pint"
+
+  check-pint:
+    desc: Check code style with Pint
+    cmds:
+      - "{{.DOCKER_EXEC}} composer check-pint"
+
+  fix-style:
+    desc: Fix code style
+    cmds:
+      - "{{.DOCKER_EXEC}} composer fix-style"
+
+  check-style:
+    desc: Check code style
+    cmds:
+      - "{{.DOCKER_EXEC}} composer check-style"
+
+  phpstan:
+    desc: Run PHPStan analysis
+    cmds:
+      - "{{.DOCKER_EXEC}} composer phpstan"
+
+  # ===================
+  # Package Installation
+  # ===================
+  install-packages-laravel-pint:
+    desc: Install Laravel Pint
+    cmds:
+      - "{{.DOCKER_EXEC}} composer require laravel/pint --dev"
+      - |
+        if type "jq" > /dev/null 2>&1; then
+          cp ./composer.json ./composer.json.tmp
+          jq --indent 4 '.scripts |= .+{"pint": "./vendor/bin/pint -v", "check-pint": "./vendor/bin/pint --test"}' ./composer.json.tmp > ./composer.json
+          rm -f ./composer.json.tmp
+        fi
+
+  install-packages-laravel-ide-helper:
+    desc: Install Laravel IDE Helper
+    cmds:
+      - "{{.DOCKER_EXEC}} composer require --dev barryvdh/laravel-ide-helper"
+      - task: ide-helper
+
+  install-packages-larastan:
+    desc: Install Larastan
+    cmds:
+      - "{{.DOCKER_EXEC}} composer require --dev \"larastan/larastan:^3.0\""
+      - |
+        if type "jq" > /dev/null 2>&1; then
+          cp ./composer.json ./composer.json.tmp
+          jq --indent 4 '.scripts |= .+{"phpstan": "./vendor/bin/phpstan analyse --xdebug"}' ./composer.json.tmp > ./composer.json
+          rm -f ./composer.json.tmp
+        fi
+
+  # ===================
+  # Laravel Octane (FrankenPHP)
+  # ===================
+  octane-start:
+    desc: Start Octane server
+    cmds:
+      - "{{.DOCKER_EXEC}} php artisan octane:start --server=frankenphp --host=0.0.0.0 --port=80"
+
+  octane-stop:
+    desc: Stop Octane server
+    cmds:
+      - "{{.DOCKER_EXEC}} php artisan octane:stop"
+
+  octane-reload:
+    desc: Reload Octane server
+    cmds:
+      - "{{.DOCKER_EXEC}} php artisan octane:reload"
+
+  octane-status:
+    desc: Show Octane server status
+    cmds:
+      - "{{.DOCKER_EXEC}} php artisan octane:status"
+
+  octane-watch:
+    desc: Start Octane server with file watching
+    cmds:
+      - "{{.DOCKER_EXEC}} php artisan octane:start --server=frankenphp --host=0.0.0.0 --port=80 --watch"

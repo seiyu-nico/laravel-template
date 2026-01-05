@@ -199,7 +199,7 @@ EOF
 print_success ".envファイルを作成しました"
 
 # compose.yamlのコンテナ名を変更
-print_header "compose.yamlとMakefileのコンテナ名を変更"
+print_header "compose.yaml、Makefile、Taskfileのコンテナ名を変更"
 print_info "compose.yamlのコンテナ名を 'app' から '$CONTAINER_NAME' に変更しています..."
 sed -i.bak "s/^  app:/  $CONTAINER_NAME:/" compose.yaml
 sed -i.bak "s/docker compose exec app /docker compose exec $CONTAINER_NAME /g" compose.yaml
@@ -215,6 +215,14 @@ sed -i.bak "s/^log-app:/log-$CONTAINER_NAME:/" Makefile
 sed -i.bak "s/^log-app-watch:/log-$CONTAINER_NAME-watch:/" Makefile
 rm -f Makefile.bak
 print_success "Makefileのコンテナ名を変更しました"
+
+# Taskfileのコンテナ名変数を変更
+print_info "Taskfileのコンテナ名を 'app' から '$CONTAINER_NAME' に変更しています..."
+sed -i.bak "s/^  CONTAINER_NAME: app$/  CONTAINER_NAME: $CONTAINER_NAME/" Taskfile.yml
+sed -i.bak "s/^  log-app:$/  log-$CONTAINER_NAME:/" Taskfile.yml
+sed -i.bak "s/^  log-app-watch:$/  log-$CONTAINER_NAME-watch:/" Taskfile.yml
+rm -f Taskfile.yml.bak
+print_success "Taskfileのコンテナ名を変更しました"
 
 # srcディレクトリの準備
 if [ -d "src" ] && [ "$(ls -A src)" ]; then
