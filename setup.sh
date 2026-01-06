@@ -211,16 +211,12 @@ print_success "compose.yamlのコンテナ名を変更しました"
 print_info "Makefileのコンテナ名を 'app' から '$CONTAINER_NAME' に変更しています..."
 sed -i.bak "s/^DOCKER_EXEC := \$(DOCKER_COMPOSE) exec app$/DOCKER_EXEC := \$(DOCKER_COMPOSE) exec $CONTAINER_NAME/" Makefile
 sed -i.bak "s/^CONTAINER_NAME := app$/CONTAINER_NAME := $CONTAINER_NAME/" Makefile
-sed -i.bak "s/^log-app:/log-$CONTAINER_NAME:/" Makefile
-sed -i.bak "s/^log-app-watch:/log-$CONTAINER_NAME-watch:/" Makefile
 rm -f Makefile.bak
 print_success "Makefileのコンテナ名を変更しました"
 
 # Taskfileのコンテナ名変数を変更
 print_info "Taskfileのコンテナ名を 'app' から '$CONTAINER_NAME' に変更しています..."
 sed -i.bak "s/^  CONTAINER_NAME: app$/  CONTAINER_NAME: $CONTAINER_NAME/" Taskfile.yml
-sed -i.bak "s/^  log-app:$/  log-$CONTAINER_NAME:/" Taskfile.yml
-sed -i.bak "s/^  log-app-watch:$/  log-$CONTAINER_NAME-watch:/" Taskfile.yml
 rm -f Taskfile.yml.bak
 print_success "Taskfileのコンテナ名を変更しました"
 
