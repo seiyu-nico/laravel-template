@@ -149,6 +149,16 @@ echo ""
 read -r -p "推奨開発パッケージをインストールしますか? (IDE Helper, Debugbar, Pint, Larastan) [Y/n]: " INSTALL_PACKAGES
 INSTALL_PACKAGES=${INSTALL_PACKAGES:-Y}
 
+# cc-sddのインストール確認
+echo ""
+read -r -p "cc-sdd (Claude Code用SDD)をインストールしますか? [y/N]: " INSTALL_CC_SDD
+INSTALL_CC_SDD=${INSTALL_CC_SDD:-N}
+
+# Laravel Boostのインストール確認
+echo ""
+read -r -p "Laravel Boost (AI開発支援ツール)をインストールしますか? [y/N]: " INSTALL_LARAVEL_BOOST
+INSTALL_LARAVEL_BOOST=${INSTALL_LARAVEL_BOOST:-N}
+
 # setup.shの削除確認
 echo ""
 read -r -p "セットアップ完了後にsetup.shを削除しますか? [y/N]: " DELETE_SETUP
@@ -166,6 +176,16 @@ if [[ $INSTALL_PACKAGES =~ ^[Yy]$ ]]; then
     echo "推奨パッケージ:        インストールする"
 else
     echo "推奨パッケージ:        インストールしない"
+fi
+if [[ $INSTALL_CC_SDD =~ ^[Yy]$ ]]; then
+    echo "cc-sdd:                インストールする"
+else
+    echo "cc-sdd:                インストールしない"
+fi
+if [[ $INSTALL_LARAVEL_BOOST =~ ^[Yy]$ ]]; then
+    echo "Laravel Boost:         インストールする"
+else
+    echo "Laravel Boost:         インストールしない"
 fi
 if [[ $DELETE_SETUP =~ ^[Yy]$ ]]; then
     echo "setup.sh削除:          削除する"
@@ -418,6 +438,38 @@ if [[ $INSTALL_PACKAGES =~ ^[Yy]$ ]]; then
     fi
 
     print_success "推奨パッケージをインストールしました"
+fi
+
+# cc-sddのインストール
+if [[ $INSTALL_CC_SDD =~ ^[Yy]$ ]]; then
+    echo ""
+    print_header "cc-sddのインストール"
+    if command -v npx &> /dev/null; then
+        npx cc-sdd@latest --claude --lang ja
+        print_success "cc-sddをインストールしました"
+    else
+        print_warning "npxがインストールされていないため、cc-sddのインストールをスキップしました"
+        print_info "後で手動でインストールできます: npx cc-sdd@latest --claude --lang ja"
+    fi
+fi
+
+# Laravel Boostのインストール
+if [[ $INSTALL_LARAVEL_BOOST =~ ^[Yy]$ ]]; then
+    echo ""
+    print_header "Laravel Boostのインストール"
+    docker compose exec "$CONTAINER_NAME" composer require laravel/boost --dev
+    docker compose exec "$CONTAINER_NAME" php artisan boost:install
+    # composer.jsonにpost-update-cmdスクリプトを追加（ホスト側で実行）
+    if command -v jq &> /dev/null; then
+        cp composer.json composer.json.tmp
+        jq --indent 4 '.scripts["post-update-cmd"] //= [] | .scripts["post-update-cmd"] += ["@php artisan boost:update --ansi"]' composer.json.tmp > composer.json
+        rm -f composer.json.tmp
+        print_success "composer.jsonにboost:updateスクリプトを追加しました"
+    else
+        print_warning "jqがインストールされていないため、composer.jsonへのスクリプト追加をスキップしました"
+        print_info "後で手動で追加できます: scripts.post-update-cmd に '@php artisan boost:update --ansi' を追加"
+    fi
+    print_success "Laravel Boostをインストールしました"
 fi
 
 # 完了メッセージ
