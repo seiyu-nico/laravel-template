@@ -149,6 +149,23 @@ echo ""
 read -r -p "推奨開発パッケージをインストールしますか? (IDE Helper, Debugbar, Pint, Larastan) [Y/n]: " INSTALL_PACKAGES
 INSTALL_PACKAGES=${INSTALL_PACKAGES:-Y}
 
+# 追加パッケージのインストール確認（個別選択、デフォルトYes）
+echo ""
+read -r -p "spatie/laravel-data をインストールしますか? [Y/n]: " INSTALL_LARAVEL_DATA
+INSTALL_LARAVEL_DATA=${INSTALL_LARAVEL_DATA:-Y}
+
+echo ""
+read -r -p "Pest (テストフレームワーク) をインストールしますか? [Y/n]: " INSTALL_PEST
+INSTALL_PEST=${INSTALL_PEST:-Y}
+
+echo ""
+read -r -p "Rector (自動リファクタ) をインストールしますか? [Y/n]: " INSTALL_RECTOR
+INSTALL_RECTOR=${INSTALL_RECTOR:-Y}
+
+echo ""
+read -r -p "internachi/modular (モジュラー構成) をインストールしますか? [Y/n]: " INSTALL_MODULAR
+INSTALL_MODULAR=${INSTALL_MODULAR:-Y}
+
 # cc-sddのインストール確認
 echo ""
 read -r -p "cc-sdd (Claude Code用SDD)をインストールしますか? [y/N]: " INSTALL_CC_SDD
@@ -186,6 +203,26 @@ if [[ $INSTALL_LARAVEL_BOOST =~ ^[Yy]$ ]]; then
     echo "Laravel Boost:         インストールする"
 else
     echo "Laravel Boost:         インストールしない"
+fi
+if [[ $INSTALL_LARAVEL_DATA =~ ^[Yy]$ ]]; then
+    echo "laravel-data:          インストールする"
+else
+    echo "laravel-data:          インストールしない"
+fi
+if [[ $INSTALL_PEST =~ ^[Yy]$ ]]; then
+    echo "Pest:                  インストールする"
+else
+    echo "Pest:                  インストールしない"
+fi
+if [[ $INSTALL_RECTOR =~ ^[Yy]$ ]]; then
+    echo "Rector:                インストールする"
+else
+    echo "Rector:                インストールしない"
+fi
+if [[ $INSTALL_MODULAR =~ ^[Yy]$ ]]; then
+    echo "internachi/modular:    インストールする"
+else
+    echo "internachi/modular:    インストールしない"
 fi
 if [[ $DELETE_SETUP =~ ^[Yy]$ ]]; then
     echo "setup.sh削除:          削除する"
