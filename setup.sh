@@ -365,6 +365,28 @@ sed -i.bak "s|source: ./src|source: .|" compose.yaml
 rm -f compose.yaml.bak
 print_success "compose.yamlのマウント設定を修正しました"
 
+# dependabot.ymlにnpm/composerの設定を追加
+# （テンプレートではpackage.json/composer.jsonが存在しないため、
+#   アプリ生成後にこのスクリプトで追記する）
+if [ -f .github/dependabot.yml ]; then
+    print_info ".github/dependabot.ymlにnpm/composerの設定を追加しています..."
+    cat >> .github/dependabot.yml << "EOF"
+
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      timezone: "Asia/Tokyo"
+
+  - package-ecosystem: "composer"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      timezone: "Asia/Tokyo"
+EOF
+    print_success ".github/dependabot.ymlにnpm/composerの設定を追加しました"
+fi
+
 # コンテナを再起動
 print_info "コンテナを再起動しています..."
 docker compose up -d
