@@ -100,14 +100,21 @@ declare(strict_types=1);
 use Rector\Config\RectorConfig;
 use RectorLaravel\Set\LaravelSetList;
 
+$paths = [
+    __DIR__.'/app',
+    __DIR__.'/config',
+    __DIR__.'/database',
+    __DIR__.'/routes',
+    __DIR__.'/tests',
+];
+
+// internachi/modular のモジュールディレクトリ（存在する場合のみ対象に含める）
+if (is_dir(__DIR__.'/app-modules')) {
+    $paths[] = __DIR__.'/app-modules';
+}
+
 return RectorConfig::configure()
-    ->withPaths([
-        __DIR__.'/app',
-        __DIR__.'/config',
-        __DIR__.'/database',
-        __DIR__.'/routes',
-        __DIR__.'/tests',
-    ])
+    ->withPaths($paths)
     ->withPhpSets()
     ->withSets([
         LaravelSetList::LARAVEL_130,
