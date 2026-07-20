@@ -631,8 +631,10 @@ echo "  - 監視モード:     make octane-watch"
 echo ""
 print_info "品質・テスト コマンド:"
 echo "  - テスト実行:     make test"
-echo "  - Rector適用:     composer rector"
-echo "  - Rector確認:     composer check-rector"
+if [[ $INSTALL_RECTOR =~ ^[Yy]$ ]]; then
+    echo "  - Rector適用:     composer rector"
+    echo "  - Rector確認:     composer check-rector"
+fi
 echo ""
 print_info "アプリケーションへのアクセス:"
 echo "  - Traefik経由: https://$APP_HOST"
