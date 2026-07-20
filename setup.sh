@@ -517,6 +517,18 @@ if [[ $INSTALL_MODULAR =~ ^[Yy]$ ]]; then
     print_success "internachi/modular をインストールしました"
 fi
 
+# Pest のインストール
+if [[ $INSTALL_PEST =~ ^[Yy]$ ]]; then
+    echo ""
+    print_header "Pest のインストール"
+    print_info "Pest をインストールしています..."
+    docker compose exec "$CONTAINER_NAME" composer require --dev --with-all-dependencies \
+        pestphp/pest pestphp/pest-plugin-laravel
+    print_info "Pest を初期化しています..."
+    docker compose exec "$CONTAINER_NAME" ./vendor/bin/pest --init
+    print_success "Pest をインストールしました"
+fi
+
 # cc-sddのインストール
 if [[ $INSTALL_CC_SDD =~ ^[Yy]$ ]]; then
     echo ""
