@@ -252,7 +252,7 @@ tasks:
       - "{{.DOCKER_EXEC}} composer rector"
 
   check-rector:
-    desc: Check Rector (dry-run)
+    desc: Check code refactoring with Rector
     cmds:
       - "{{.DOCKER_EXEC}} composer check-rector"
 
