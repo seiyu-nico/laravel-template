@@ -1,7 +1,7 @@
 # setup.sh 追加パッケージ 設計書
 
 - 日付: 2026-07-20
-- 対象ファイル: `setup.sh`（このファイルのみ変更）
+- 対象ファイル: `setup.sh`（レビュー時のオーナー承認により `Makefile` / `Taskfile.yml` の `rector` / `check-rector` ターゲット追加も対象に追加）
 - 目的: `setup.sh` によるプロジェクト構築時に、フルスタック Web アプリ向けの追加パッケージを個別選択でインストールできるようにする。
 
 ## 背景・前提
@@ -26,7 +26,10 @@
 - 既存推奨5パッケージの構成変更。
 - フロントエンド関連パッケージ（Livewire / Inertia など）。
 - config の publish（laravel-data / modular はデフォルトのまま。必要時に手動）。
-- Makefile / Taskfile への新規ターゲット追加（`make test` は既存の `php artisan test` 経由で Pest もそのまま動作するため不要）。
+
+### スコープ変更（レビュー時にオーナー承認済み）
+
+- Makefile / Taskfile への `rector` / `check-rector` ターゲット追加は、当初「対象外」としていたが、レビュー時にオーナー判断でスコープに追加された。`composer rector` / `composer check-rector` を直接叩く運用ではなく、他の品質コマンド（`pint` / `phpstan` 等）と同様に `make` 経由で実行できるようにするため。
 
 ## 詳細設計
 
@@ -107,7 +110,7 @@ return RectorConfig::configure()
     ])
     ->withPhpSets()
     ->withSets([
-        LaravelSetList::LARAVEL_120,
+        LaravelSetList::LARAVEL_130,
     ])
     ->withPreparedSets(deadCode: true, codeQuality: true);
 ```
@@ -127,7 +130,7 @@ fi
 
 ### 4. 完了メッセージ
 
-スクリプト末尾のコマンド案内に、Rector（`composer rector` / `composer check-rector`）と Pest（`make test`）の案内を軽く追記する。
+スクリプト末尾のコマンド案内に、Rector（`make rector` / `make check-rector`）と Pest（`make test`）の案内を軽く追記する。
 
 ## 検証方法
 
@@ -137,5 +140,5 @@ fi
 
 ## 留意点
 
-- `driftingly/rector-laravel` の `LaravelSetList::LARAVEL_120` は Laravel 12 系向けセット。生成される Laravel のバージョンに追従が必要になった場合、この定数を見直す。
+- `driftingly/rector-laravel` の `LaravelSetList::LARAVEL_130` は Laravel 13 系向けセット（`composer create-project laravel/laravel .` はバージョン非固定のため、現行の最新安定版に追従）。生成される Laravel のバージョンがメジャー更新された場合、この定数を見直す。
 - Pest 初期化（`pest --init`）は生成直後の状態を前提とする。既存テストを大きく改変した後の再実行は想定しない。

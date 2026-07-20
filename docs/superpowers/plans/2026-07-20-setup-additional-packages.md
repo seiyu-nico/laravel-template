@@ -10,9 +10,9 @@
 
 ## Global Constraints
 
-- 変更対象は `setup.sh` の1ファイルのみ。
+- 変更対象は `setup.sh`、`Makefile`、`Taskfile.yml`。`Makefile` / `Taskfile.yml` への `rector` / `check-rector` ターゲット追加は、当初対象外としていたが、レビュー時にオーナー判断でスコープに追加された。
 - 追加4パッケージは全て個別選択、デフォルト Yes（`[Y/n]`、`${VAR:-Y}`）。
-- インストール処理は既存「推奨パッケージ」ブロック直後・`cc-sdd` インストール前に、パッケージごとに独立した `if` ブロックとして配置。実行順: laravel-data → Pest → Rector → modular。
+- インストール処理は既存「推奨パッケージ」ブロック直後・`cc-sdd` インストール前に、パッケージごとに独立した `if` ブロックとして配置。実行順: laravel-data → modular → Pest → Rector。
 - 各ブロックは既存踏襲で `print_info`（開始）/`print_success`（完了）を使う。
 - composer.json へのスクリプト追加は既存 pint/phpstan と同じ jq パターン（jq 無しなら `print_warning` してスキップ）。
 - コンテナ内実行は `docker compose exec "$CONTAINER_NAME" ...`、ホスト側ファイル編集はコンテナ外で行う（既存パターン踏襲）。
@@ -271,7 +271,7 @@ return RectorConfig::configure()
     ])
     ->withPhpSets()
     ->withSets([
-        LaravelSetList::LARAVEL_120,
+        LaravelSetList::LARAVEL_130,
     ])
     ->withPreparedSets(deadCode: true, codeQuality: true);
 EOF
@@ -341,8 +341,8 @@ echo ""
 ```bash
 print_info "品質・テスト コマンド:"
 echo "  - テスト実行:     make test"
-echo "  - Rector適用:     composer rector"
-echo "  - Rector確認:     composer check-rector"
+echo "  - Rector適用:     make rector"
+echo "  - Rector確認:     make check-rector"
 echo ""
 ```
 
@@ -350,7 +350,7 @@ echo ""
 
 Run:
 ```bash
-bash -n setup.sh && grep -c 'composer rector\|composer check-rector' setup.sh
+bash -n setup.sh && grep -c 'make rector\|make check-rector' setup.sh
 ```
 Expected: 構文エラーなし。カウント `2`。
 
@@ -372,6 +372,6 @@ git commit -m "docs: add Pest/Rector command hints to setup.sh completion messag
 
 ## 留意点
 
-- `LaravelSetList::LARAVEL_120` は Laravel 12 系向けセット。生成される Laravel が別メジャーの場合はこの定数を追従させる（`driftingly/rector-laravel` の提供定数に依存）。
+- `LaravelSetList::LARAVEL_130` は Laravel 13 系向けセット（`composer create-project laravel/laravel .` はバージョン非固定のため、現行の最新安定版に追従）。生成される Laravel が別メジャーの場合はこの定数を追従させる（`driftingly/rector-laravel` の提供定数に依存）。
 - `pest --init` は Laravel 生成直後のクリーンな状態を前提とする。
 - 実際のパッケージ導入可否（バージョン整合など）は本番 `./setup.sh` 実行時に確定する。本プランのタスクレベル検証はシェル構文と挿入内容に限定される。
