@@ -529,6 +529,51 @@ if [[ $INSTALL_PEST =~ ^[Yy]$ ]]; then
     print_success "Pest をインストールしました"
 fi
 
+# Rector のインストール
+if [[ $INSTALL_RECTOR =~ ^[Yy]$ ]]; then
+    echo ""
+    print_header "Rector のインストール"
+    print_info "Rector をインストールしています..."
+    docker compose exec "$CONTAINER_NAME" composer require --dev rector/rector driftingly/rector-laravel
+
+    print_info "rector.php を生成しています..."
+    cat > rector.php << 'EOF'
+<?php
+
+declare(strict_types=1);
+
+use Rector\Config\RectorConfig;
+use RectorLaravel\Set\LaravelSetList;
+
+return RectorConfig::configure()
+    ->withPaths([
+        __DIR__.'/app',
+        __DIR__.'/config',
+        __DIR__.'/database',
+        __DIR__.'/routes',
+        __DIR__.'/tests',
+    ])
+    ->withPhpSets()
+    ->withSets([
+        LaravelSetList::LARAVEL_120,
+    ])
+    ->withPreparedSets(deadCode: true, codeQuality: true);
+EOF
+    print_success "rector.php を生成しました"
+
+    # composer.jsonにrectorスクリプトを追加（ホスト側で実行）
+    if command -v jq &> /dev/null; then
+        cp composer.json composer.json.tmp
+        jq --indent 4 '.scripts |= .+{"rector": "./vendor/bin/rector process", "check-rector": "./vendor/bin/rector process --dry-run"}' composer.json.tmp > composer.json
+        rm -f composer.json.tmp
+        print_success "composer.jsonにrectorスクリプトを追加しました"
+    else
+        print_warning "jqがインストールされていないため、composer.jsonへのスクリプト追加をスキップしました"
+    fi
+
+    print_success "Rector をインストールしました"
+fi
+
 # cc-sddのインストール
 if [[ $INSTALL_CC_SDD =~ ^[Yy]$ ]]; then
     echo ""
