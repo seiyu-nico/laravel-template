@@ -149,6 +149,23 @@ echo ""
 read -r -p "推奨開発パッケージをインストールしますか? (IDE Helper, Debugbar, Pint, Larastan) [Y/n]: " INSTALL_PACKAGES
 INSTALL_PACKAGES=${INSTALL_PACKAGES:-Y}
 
+# 追加パッケージのインストール確認（個別選択、デフォルトYes）
+echo ""
+read -r -p "spatie/laravel-dataをインストールしますか? [Y/n]: " INSTALL_LARAVEL_DATA
+INSTALL_LARAVEL_DATA=${INSTALL_LARAVEL_DATA:-Y}
+
+echo ""
+read -r -p "Pest (テストフレームワーク)をインストールしますか? [Y/n]: " INSTALL_PEST
+INSTALL_PEST=${INSTALL_PEST:-Y}
+
+echo ""
+read -r -p "Rector (自動リファクタ)をインストールしますか? [Y/n]: " INSTALL_RECTOR
+INSTALL_RECTOR=${INSTALL_RECTOR:-Y}
+
+echo ""
+read -r -p "internachi/modular (モジュラー構成)をインストールしますか? [Y/n]: " INSTALL_MODULAR
+INSTALL_MODULAR=${INSTALL_MODULAR:-Y}
+
 # cc-sddのインストール確認
 echo ""
 read -r -p "cc-sdd (Claude Code用SDD)をインストールしますか? [y/N]: " INSTALL_CC_SDD
@@ -176,6 +193,26 @@ if [[ $INSTALL_PACKAGES =~ ^[Yy]$ ]]; then
     echo "推奨パッケージ:        インストールする"
 else
     echo "推奨パッケージ:        インストールしない"
+fi
+if [[ $INSTALL_LARAVEL_DATA =~ ^[Yy]$ ]]; then
+    echo "laravel-data:          インストールする"
+else
+    echo "laravel-data:          インストールしない"
+fi
+if [[ $INSTALL_PEST =~ ^[Yy]$ ]]; then
+    echo "Pest:                  インストールする"
+else
+    echo "Pest:                  インストールしない"
+fi
+if [[ $INSTALL_RECTOR =~ ^[Yy]$ ]]; then
+    echo "Rector:                インストールする"
+else
+    echo "Rector:                インストールしない"
+fi
+if [[ $INSTALL_MODULAR =~ ^[Yy]$ ]]; then
+    echo "internachi/modular:    インストールする"
+else
+    echo "internachi/modular:    インストールしない"
 fi
 if [[ $INSTALL_CC_SDD =~ ^[Yy]$ ]]; then
     echo "cc-sdd:                インストールする"
@@ -462,6 +499,84 @@ if [[ $INSTALL_PACKAGES =~ ^[Yy]$ ]]; then
     print_success "推奨パッケージをインストールしました"
 fi
 
+# spatie/laravel-data のインストール
+if [[ $INSTALL_LARAVEL_DATA =~ ^[Yy]$ ]]; then
+    echo ""
+    print_header "spatie/laravel-data のインストール"
+    docker compose exec "$CONTAINER_NAME" composer require spatie/laravel-data
+    print_success "spatie/laravel-data をインストールしました"
+fi
+
+# internachi/modular のインストール
+if [[ $INSTALL_MODULAR =~ ^[Yy]$ ]]; then
+    echo ""
+    print_header "internachi/modular のインストール"
+    docker compose exec "$CONTAINER_NAME" composer require internachi/modular
+    print_success "internachi/modular をインストールしました"
+fi
+
+# Pest のインストール
+if [[ $INSTALL_PEST =~ ^[Yy]$ ]]; then
+    echo ""
+    print_header "Pest のインストール"
+    docker compose exec "$CONTAINER_NAME" composer require --dev --with-all-dependencies \
+        pestphp/pest pestphp/pest-plugin-laravel
+    print_info "Pest を初期化しています..."
+    docker compose exec "$CONTAINER_NAME" ./vendor/bin/pest --init
+    print_success "Pest をインストールしました"
+fi
+
+# Rector のインストール
+if [[ $INSTALL_RECTOR =~ ^[Yy]$ ]]; then
+    echo ""
+    print_header "Rector のインストール"
+    docker compose exec "$CONTAINER_NAME" composer require --dev rector/rector driftingly/rector-laravel
+
+    print_info "rector.php を生成しています..."
+    cat > rector.php << 'EOF'
+<?php
+
+declare(strict_types=1);
+
+use Rector\Config\RectorConfig;
+use RectorLaravel\Set\LaravelSetList;
+
+$paths = [
+    __DIR__.'/app',
+    __DIR__.'/config',
+    __DIR__.'/database',
+    __DIR__.'/routes',
+    __DIR__.'/tests',
+];
+
+// internachi/modular のモジュールディレクトリ（存在する場合のみ対象に含める）
+if (is_dir(__DIR__.'/app-modules')) {
+    $paths[] = __DIR__.'/app-modules';
+}
+
+return RectorConfig::configure()
+    ->withPaths($paths)
+    ->withPhpSets()
+    ->withSets([
+        LaravelSetList::LARAVEL_130,
+    ])
+    ->withPreparedSets(deadCode: true, codeQuality: true);
+EOF
+    print_success "rector.php を生成しました"
+
+    # composer.jsonにrectorスクリプトを追加（ホスト側で実行）
+    if command -v jq &> /dev/null; then
+        cp composer.json composer.json.tmp
+        jq --indent 4 '.scripts |= .+{"rector": "./vendor/bin/rector process", "check-rector": "./vendor/bin/rector process --dry-run"}' composer.json.tmp > composer.json
+        rm -f composer.json.tmp
+        print_success "composer.jsonにrectorスクリプトを追加しました"
+    else
+        print_warning "jqがインストールされていないため、composer.jsonへのスクリプト追加をスキップしました"
+    fi
+
+    print_success "Rector をインストールしました"
+fi
+
 # cc-sddのインストール
 if [[ $INSTALL_CC_SDD =~ ^[Yy]$ ]]; then
     echo ""
@@ -516,6 +631,13 @@ echo "  - Octane停止:     make octane-stop"
 echo "  - Octane再読込:   make octane-reload"
 echo "  - Octane状態確認: make octane-status"
 echo "  - 監視モード:     make octane-watch"
+echo ""
+print_info "品質・テスト コマンド:"
+echo "  - テスト実行:     make test"
+if [[ $INSTALL_RECTOR =~ ^[Yy]$ ]]; then
+    echo "  - Rector適用:     make rector"
+    echo "  - Rector確認:     make check-rector"
+fi
 echo ""
 print_info "アプリケーションへのアクセス:"
 echo "  - Traefik経由: https://$APP_HOST"

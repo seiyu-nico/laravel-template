@@ -246,6 +246,16 @@ tasks:
     cmds:
       - "{{.DOCKER_EXEC}} composer phpstan"
 
+  rector:
+    desc: Run Rector
+    cmds:
+      - "{{.DOCKER_EXEC}} composer rector"
+
+  check-rector:
+    desc: Check code refactoring with Rector
+    cmds:
+      - "{{.DOCKER_EXEC}} composer check-rector"
+
   # ===================
   # Package Installation
   # ===================

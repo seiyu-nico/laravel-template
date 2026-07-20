@@ -28,6 +28,7 @@ Docker を使用した Laravel 開発環境テンプレートです。FrankenPHP
 5. Laravelプロジェクトの作成（プロジェクト直下に配置）
 6. Laravel Octaneのインストールと設定
 7. 推奨パッケージのインストール（オプション）
+8. 追加パッケージのインストール（オプション、個別選択）: spatie/laravel-data、Pest、Rector、internachi/modular
 
 ## 必要な環境
 
@@ -67,6 +68,8 @@ make tinker          # Tinker起動
 make test            # テスト実行
 make pint            # コード整形
 make phpstan         # 静的解析
+make rector          # Rectorによる自動リファクタ適用
+make check-rector    # Rectorによる自動リファクタ確認（dry-run）
 ```
 
 ## ディレクトリ構造
