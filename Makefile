@@ -3,7 +3,7 @@ DOCKER_COMPOSE := docker compose
 DOCKER_EXEC := $(DOCKER_COMPOSE) exec app
 CONTAINER_NAME := app
 
-.PHONY: up build create-project install-recommend-packages init remake stop down down-v restart destroy ps logs logs-watch log-app log-app-watch log-db log-db-watch app migrate seed rollback-test tinker test test-coverage optimize optimize-clear cache cache-clear db sql ide-helper pint check-pint phpstan install-packages-laravel-pint install-packages-laravel-ide-helper install-packages-larastan octane-start octane-stop octane-reload octane-status octane-watch
+.PHONY: up build create-project install-recommend-packages init remake stop down down-v restart destroy ps logs logs-watch log-app log-app-watch log-db log-db-watch app migrate seed rollback-test tinker test test-coverage optimize optimize-clear cache cache-clear db sql ide-helper pint check-pint phpstan rector check-rector install-packages-laravel-pint install-packages-laravel-ide-helper install-packages-larastan octane-start octane-stop octane-reload octane-status octane-watch
 
 up:
 	$(DOCKER_COMPOSE) up -d
@@ -108,6 +108,10 @@ check-style:
 	$(DOCKER_EXEC) composer check-style
 phpstan:
 	$(DOCKER_EXEC) composer phpstan
+rector:
+	$(DOCKER_EXEC) composer rector
+check-rector:
+	$(DOCKER_EXEC) composer check-rector
 install-packages-laravel-pint:
 	$(DOCKER_EXEC) composer require laravel/pint --dev
 	if type "jq" > /dev/null 2>&1; then \
