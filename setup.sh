@@ -499,6 +499,24 @@ if [[ $INSTALL_PACKAGES =~ ^[Yy]$ ]]; then
     print_success "推奨パッケージをインストールしました"
 fi
 
+# spatie/laravel-data のインストール
+if [[ $INSTALL_LARAVEL_DATA =~ ^[Yy]$ ]]; then
+    echo ""
+    print_header "spatie/laravel-data のインストール"
+    print_info "spatie/laravel-data をインストールしています..."
+    docker compose exec "$CONTAINER_NAME" composer require spatie/laravel-data
+    print_success "spatie/laravel-data をインストールしました"
+fi
+
+# internachi/modular のインストール
+if [[ $INSTALL_MODULAR =~ ^[Yy]$ ]]; then
+    echo ""
+    print_header "internachi/modular のインストール"
+    print_info "internachi/modular をインストールしています..."
+    docker compose exec "$CONTAINER_NAME" composer require internachi/modular
+    print_success "internachi/modular をインストールしました"
+fi
+
 # cc-sddのインストール
 if [[ $INSTALL_CC_SDD =~ ^[Yy]$ ]]; then
     echo ""
