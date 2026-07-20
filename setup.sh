@@ -151,19 +151,19 @@ INSTALL_PACKAGES=${INSTALL_PACKAGES:-Y}
 
 # 追加パッケージのインストール確認（個別選択、デフォルトYes）
 echo ""
-read -r -p "spatie/laravel-data をインストールしますか? [Y/n]: " INSTALL_LARAVEL_DATA
+read -r -p "spatie/laravel-dataをインストールしますか? [Y/n]: " INSTALL_LARAVEL_DATA
 INSTALL_LARAVEL_DATA=${INSTALL_LARAVEL_DATA:-Y}
 
 echo ""
-read -r -p "Pest (テストフレームワーク) をインストールしますか? [Y/n]: " INSTALL_PEST
+read -r -p "Pest (テストフレームワーク)をインストールしますか? [Y/n]: " INSTALL_PEST
 INSTALL_PEST=${INSTALL_PEST:-Y}
 
 echo ""
-read -r -p "Rector (自動リファクタ) をインストールしますか? [Y/n]: " INSTALL_RECTOR
+read -r -p "Rector (自動リファクタ)をインストールしますか? [Y/n]: " INSTALL_RECTOR
 INSTALL_RECTOR=${INSTALL_RECTOR:-Y}
 
 echo ""
-read -r -p "internachi/modular (モジュラー構成) をインストールしますか? [Y/n]: " INSTALL_MODULAR
+read -r -p "internachi/modular (モジュラー構成)をインストールしますか? [Y/n]: " INSTALL_MODULAR
 INSTALL_MODULAR=${INSTALL_MODULAR:-Y}
 
 # cc-sddのインストール確認
@@ -194,16 +194,6 @@ if [[ $INSTALL_PACKAGES =~ ^[Yy]$ ]]; then
 else
     echo "推奨パッケージ:        インストールしない"
 fi
-if [[ $INSTALL_CC_SDD =~ ^[Yy]$ ]]; then
-    echo "cc-sdd:                インストールする"
-else
-    echo "cc-sdd:                インストールしない"
-fi
-if [[ $INSTALL_LARAVEL_BOOST =~ ^[Yy]$ ]]; then
-    echo "Laravel Boost:         インストールする"
-else
-    echo "Laravel Boost:         インストールしない"
-fi
 if [[ $INSTALL_LARAVEL_DATA =~ ^[Yy]$ ]]; then
     echo "laravel-data:          インストールする"
 else
@@ -223,6 +213,16 @@ if [[ $INSTALL_MODULAR =~ ^[Yy]$ ]]; then
     echo "internachi/modular:    インストールする"
 else
     echo "internachi/modular:    インストールしない"
+fi
+if [[ $INSTALL_CC_SDD =~ ^[Yy]$ ]]; then
+    echo "cc-sdd:                インストールする"
+else
+    echo "cc-sdd:                インストールしない"
+fi
+if [[ $INSTALL_LARAVEL_BOOST =~ ^[Yy]$ ]]; then
+    echo "Laravel Boost:         インストールする"
+else
+    echo "Laravel Boost:         インストールしない"
 fi
 if [[ $DELETE_SETUP =~ ^[Yy]$ ]]; then
     echo "setup.sh削除:          削除する"
@@ -503,7 +503,6 @@ fi
 if [[ $INSTALL_LARAVEL_DATA =~ ^[Yy]$ ]]; then
     echo ""
     print_header "spatie/laravel-data のインストール"
-    print_info "spatie/laravel-data をインストールしています..."
     docker compose exec "$CONTAINER_NAME" composer require spatie/laravel-data
     print_success "spatie/laravel-data をインストールしました"
 fi
@@ -512,7 +511,6 @@ fi
 if [[ $INSTALL_MODULAR =~ ^[Yy]$ ]]; then
     echo ""
     print_header "internachi/modular のインストール"
-    print_info "internachi/modular をインストールしています..."
     docker compose exec "$CONTAINER_NAME" composer require internachi/modular
     print_success "internachi/modular をインストールしました"
 fi
@@ -521,7 +519,6 @@ fi
 if [[ $INSTALL_PEST =~ ^[Yy]$ ]]; then
     echo ""
     print_header "Pest のインストール"
-    print_info "Pest をインストールしています..."
     docker compose exec "$CONTAINER_NAME" composer require --dev --with-all-dependencies \
         pestphp/pest pestphp/pest-plugin-laravel
     print_info "Pest を初期化しています..."
@@ -533,7 +530,6 @@ fi
 if [[ $INSTALL_RECTOR =~ ^[Yy]$ ]]; then
     echo ""
     print_header "Rector のインストール"
-    print_info "Rector をインストールしています..."
     docker compose exec "$CONTAINER_NAME" composer require --dev rector/rector driftingly/rector-laravel
 
     print_info "rector.php を生成しています..."
@@ -555,7 +551,7 @@ return RectorConfig::configure()
     ])
     ->withPhpSets()
     ->withSets([
-        LaravelSetList::LARAVEL_120,
+        LaravelSetList::LARAVEL_130,
     ])
     ->withPreparedSets(deadCode: true, codeQuality: true);
 EOF
@@ -632,8 +628,8 @@ echo ""
 print_info "品質・テスト コマンド:"
 echo "  - テスト実行:     make test"
 if [[ $INSTALL_RECTOR =~ ^[Yy]$ ]]; then
-    echo "  - Rector適用:     composer rector"
-    echo "  - Rector確認:     composer check-rector"
+    echo "  - Rector適用:     make rector"
+    echo "  - Rector確認:     make check-rector"
 fi
 echo ""
 print_info "アプリケーションへのアクセス:"
