@@ -4,6 +4,8 @@ vars:
   DOCKER_COMPOSE: docker compose
   CONTAINER_NAME: app
   DOCKER_EXEC: "{{.DOCKER_COMPOSE}} exec {{.CONTAINER_NAME}}"
+  # Octane 起動前 (vendor 未インストール等) のコンテナでコマンドを実行する
+  DOCKER_RUN: "{{.DOCKER_COMPOSE}} run --rm {{.CONTAINER_NAME}}"
 
 tasks:
   # ===================
@@ -23,12 +25,14 @@ tasks:
     desc: Create new Laravel project
     cmds:
       - task: build
-      - task: up
       - rm -f src/.gitignore
-      - "{{.DOCKER_EXEC}} composer create-project --prefer-dist laravel/laravel ."
-      - "{{.DOCKER_EXEC}} php artisan key:generate"
-      - "{{.DOCKER_EXEC}} php artisan storage:link"
-      - "{{.DOCKER_EXEC}} chmod -R 777 storage bootstrap/cache"
+      - "{{.DOCKER_RUN}} composer create-project --prefer-dist laravel/laravel ."
+      - "{{.DOCKER_RUN}} php artisan key:generate"
+      - "{{.DOCKER_RUN}} php artisan storage:link"
+      - "{{.DOCKER_RUN}} chmod -R 777 storage bootstrap/cache"
+      - "{{.DOCKER_RUN}} composer require laravel/octane"
+      - "{{.DOCKER_RUN}} php artisan octane:install --server=frankenphp"
+      - task: up
 
   install-recommend-packages:
     desc: Install recommended packages
@@ -43,12 +47,13 @@ tasks:
   init:
     desc: Initialize existing project
     cmds:
-      - "{{.DOCKER_COMPOSE}} up -d --build"
-      - "{{.DOCKER_EXEC}} composer install"
-      - "{{.DOCKER_EXEC}} cp .env.example .env"
-      - "{{.DOCKER_EXEC}} php artisan key:generate"
-      - "{{.DOCKER_EXEC}} php artisan storage:link"
-      - "{{.DOCKER_EXEC}} chmod -R 777 storage bootstrap/cache"
+      - "{{.DOCKER_COMPOSE}} build"
+      - "{{.DOCKER_RUN}} composer install"
+      - "{{.DOCKER_RUN}} cp .env.example .env"
+      - "{{.DOCKER_RUN}} php artisan key:generate"
+      - "{{.DOCKER_RUN}} php artisan storage:link"
+      - "{{.DOCKER_RUN}} chmod -R 777 storage bootstrap/cache"
+      - task: up
 
   remake:
     desc: Destroy and reinitialize
@@ -290,16 +295,6 @@ tasks:
   # ===================
   # Laravel Octane (FrankenPHP)
   # ===================
-  octane-start:
-    desc: Start Octane server
-    cmds:
-      - "{{.DOCKER_EXEC}} php artisan octane:start --server=frankenphp --host=0.0.0.0 --port=80"
-
-  octane-stop:
-    desc: Stop Octane server
-    cmds:
-      - "{{.DOCKER_EXEC}} php artisan octane:stop"
-
   octane-reload:
     desc: Reload Octane server
     cmds:
@@ -309,8 +304,3 @@ tasks:
     desc: Show Octane server status
     cmds:
       - "{{.DOCKER_EXEC}} php artisan octane:status"
-
-  octane-watch:
-    desc: Start Octane server with file watching
-    cmds:
-      - "{{.DOCKER_EXEC}} php artisan octane:start --server=frankenphp --host=0.0.0.0 --port=80 --watch"
