@@ -396,11 +396,6 @@ print_info "ストレージリンクを作成しています..."
 "${DOCKER_RUN[@]}" php artisan storage:link
 print_success "ストレージリンクを作成しました"
 
-# パーミッションの設定
-print_info "パーミッションを設定しています..."
-"${DOCKER_RUN[@]}" chmod -R 777 storage bootstrap/cache
-print_success "パーミッションを設定しました"
-
 # Laravel Octaneのインストール
 print_header "Laravel Octaneのインストール"
 "${DOCKER_RUN[@]}" composer require laravel/octane
