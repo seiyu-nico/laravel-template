@@ -166,11 +166,6 @@ echo ""
 read -r -p "internachi/modular (モジュラー構成)をインストールしますか? [Y/n]: " INSTALL_MODULAR
 INSTALL_MODULAR=${INSTALL_MODULAR:-Y}
 
-# cc-sddのインストール確認
-echo ""
-read -r -p "cc-sdd (Claude Code用SDD)をインストールしますか? [y/N]: " INSTALL_CC_SDD
-INSTALL_CC_SDD=${INSTALL_CC_SDD:-N}
-
 # Laravel Boostのインストール確認
 echo ""
 read -r -p "Laravel Boost (AI開発支援ツール)をインストールしますか? [y/N]: " INSTALL_LARAVEL_BOOST
@@ -213,11 +208,6 @@ if [[ $INSTALL_MODULAR =~ ^[Yy]$ ]]; then
     echo "internachi/modular:    インストールする"
 else
     echo "internachi/modular:    インストールしない"
-fi
-if [[ $INSTALL_CC_SDD =~ ^[Yy]$ ]]; then
-    echo "cc-sdd:                インストールする"
-else
-    echo "cc-sdd:                インストールしない"
 fi
 if [[ $INSTALL_LARAVEL_BOOST =~ ^[Yy]$ ]]; then
     echo "Laravel Boost:         インストールする"
@@ -559,19 +549,6 @@ EOF
     fi
 
     print_success "Rector をインストールしました"
-fi
-
-# cc-sddのインストール
-if [[ $INSTALL_CC_SDD =~ ^[Yy]$ ]]; then
-    echo ""
-    print_header "cc-sddのインストール"
-    if command -v npx &> /dev/null; then
-        npx cc-sdd@latest --claude --lang ja
-        print_success "cc-sddをインストールしました"
-    else
-        print_warning "npxがインストールされていないため、cc-sddのインストールをスキップしました"
-        print_info "後で手動でインストールできます: npx cc-sdd@latest --claude --lang ja"
-    fi
 fi
 
 # Laravel Boostのインストール
