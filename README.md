@@ -97,8 +97,6 @@ laravel-template/
 
 ```env
 ENV=local                    # 環境 (local/dev/prod)
-UID=1000                     # ユーザーID
-GID=1000                     # グループID
 SERVICE_NAME=laravel         # サービス名
 CONTAINER_NAME=laravel       # コンテナ名
 APP_HOST=laravel.example.com # Traefik用ホスト名
