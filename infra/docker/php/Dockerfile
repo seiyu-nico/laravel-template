@@ -44,10 +44,10 @@ FROM base AS dev
 # Copy PHP configuration
 COPY ./infra/docker/php/php.ini/php.dev.ini /usr/local/etc/php/conf.d/custom.ini
 
-# Local stage with Xdebug
+# Local stage with PCOV (coverage driver for Pest)
 FROM base AS local
 
-RUN install-php-extensions xdebug
+RUN install-php-extensions pcov
 
 # Copy PHP configuration
 COPY ./infra/docker/php/php.ini/php.local.ini /usr/local/etc/php/conf.d/custom.ini

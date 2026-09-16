@@ -208,7 +208,7 @@ else
     echo "setup.sh削除:          削除しない"
 fi
 echo ""
-print_info "※ 環境は local (Xdebug有効) で作成されます"
+print_info "※ 環境は local (PCOV有効) で作成されます"
 echo ""
 read -r -p "この設定で続行しますか? [y/N]: " confirm
 if [[ ! $confirm =~ ^[Yy]$ ]]; then
@@ -475,10 +475,16 @@ fi
 if [[ $INSTALL_PEST =~ ^[Yy]$ ]]; then
     echo ""
     print_header "Pest のインストール"
+    # Laravel同梱の phpunit/phpunit の制約で Pest 4 に固定されないよう先に外す
+    # (--tia を使うには Pest 5 以上が必要。PHPUnit は Pest の依存として入る)
+    "${DOCKER_RUN[@]}" composer remove --dev --no-update phpunit/phpunit
     "${DOCKER_RUN[@]}" composer require --dev --with-all-dependencies \
         pestphp/pest pestphp/pest-plugin-laravel
     print_info "Pest を初期化しています..."
     "${DOCKER_RUN[@]}" ./vendor/bin/pest --init
+    # PHPUnit形式のサンプルテストは --tia 実行時にエラーになるため削除する
+    print_info "サンプルテストを削除しています..."
+    rm -f tests/Unit/ExampleTest.php tests/Feature/ExampleTest.php
     print_success "Pest をインストールしました"
 fi
 
@@ -565,7 +571,7 @@ echo ""
 print_info "プロジェクト詳細:"
 echo "  - サービス名: $SERVICE_NAME"
 echo "  - Web URL: $APP_HOST"
-echo "  - 環境: local (Xdebug有効)"
+echo "  - 環境: local (PCOV有効)"
 echo ""
 print_info "便利なコマンド:"
 echo "  - ログ表示:           make logs"
