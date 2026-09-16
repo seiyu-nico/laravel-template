@@ -5,7 +5,7 @@ CONTAINER_NAME := app
 # Octane 起動前 (vendor 未インストール等) のコンテナでコマンドを実行する
 DOCKER_RUN := $(DOCKER_COMPOSE) run --rm $(CONTAINER_NAME)
 
-.PHONY: up build create-project install-recommend-packages init remake stop down down-v restart destroy ps logs logs-watch log-app log-app-watch log-db log-db-watch app migrate seed rollback-test tinker test test-coverage optimize optimize-clear cache cache-clear db sql ide-helper pint check-pint phpstan rector check-rector install-packages-laravel-pint install-packages-laravel-ide-helper install-packages-larastan octane-reload octane-status
+.PHONY: up build create-project install-recommend-packages init remake stop down down-v restart destroy ps logs logs-watch log-app log-app-watch log-db log-db-watch app migrate seed rollback-test tinker test test-all test-coverage optimize optimize-clear cache cache-clear db sql ide-helper pint check-pint phpstan rector check-rector install-packages-laravel-pint install-packages-laravel-ide-helper install-packages-larastan octane-reload octane-status
 
 up:
 	$(DOCKER_COMPOSE) up -d
@@ -76,6 +76,8 @@ rollback-test:
 tinker:
 	$(DOCKER_EXEC) php artisan tinker
 test:
+	$(DOCKER_EXEC) php artisan test --tia
+test-all:
 	$(DOCKER_EXEC) php artisan test
 test-coverage:
 	$(DOCKER_EXEC) php artisan test --coverage

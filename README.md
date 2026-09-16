@@ -64,7 +64,8 @@ make octane-status   # Octane状態確認
 make migrate         # マイグレーション実行
 make seed            # シーダー実行
 make tinker          # Tinker起動
-make test            # テスト実行
+make test            # 変更の影響を受けるテストのみ実行（Pest TIA）
+make test-all        # 全テスト実行
 make pint            # コード整形
 make phpstan         # 静的解析
 make rector          # Rectorによる自動リファクタ適用
