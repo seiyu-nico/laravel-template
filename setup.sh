@@ -442,10 +442,24 @@ if [[ $INSTALL_PACKAGES =~ ^[Yy]$ ]]; then
 
     print_info "Larastan をインストールしています..."
     "${DOCKER_RUN[@]}" composer require --dev "larastan/larastan:^3.0"
+
+    print_info "phpstan.neon を生成しています..."
+    cat > phpstan.neon << 'EOF'
+includes:
+    - vendor/larastan/larastan/extension.neon
+
+parameters:
+    paths:
+        - app/
+
+    level: 9
+EOF
+    print_success "phpstan.neon を生成しました"
+
     # composer.jsonにphpstanスクリプトを追加（ホスト側で実行）
     if command -v jq &> /dev/null; then
         cp composer.json composer.json.tmp
-        jq --indent 4 '.scripts |= .+{"phpstan": "./vendor/bin/phpstan analyse --xdebug"}' composer.json.tmp > composer.json
+        jq --indent 4 '.scripts |= .+{"phpstan": "./vendor/bin/phpstan analyse"}' composer.json.tmp > composer.json
         rm -f composer.json.tmp
         print_success "composer.jsonにphpstanスクリプトを追加しました"
     else

@@ -131,7 +131,7 @@ install-packages-larastan:
 	$(DOCKER_EXEC) composer require --dev "larastan/larastan:^3.0"
 	if type "jq" > /dev/null 2>&1; then \
 		cp ./composer.json ./composer.json.tmp; \
-		jq --indent 4 '.scripts |= .+{"phpstan": "./vendor/bin/phpstan analyse --xdebug"}' ./composer.json.tmp  > ./composer.json; \
+		jq --indent 4 '.scripts |= .+{"phpstan": "./vendor/bin/phpstan analyse"}' ./composer.json.tmp  > ./composer.json; \
 		rm -f ./composer.json.tmp; \
 	fi
 octane-reload:
