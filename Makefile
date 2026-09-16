@@ -5,7 +5,7 @@ CONTAINER_NAME := app
 # Octane 起動前 (vendor 未インストール等) のコンテナでコマンドを実行する
 DOCKER_RUN := $(DOCKER_COMPOSE) run --rm $(CONTAINER_NAME)
 
-.PHONY: up build create-project install-recommend-packages init remake stop down down-v restart destroy ps logs logs-watch log-app log-app-watch log-db log-db-watch app migrate seed rollback-test tinker test test-coverage optimize optimize-clear cache cache-clear db sql ide-helper pint check-pint phpstan rector check-rector install-packages-laravel-pint install-packages-laravel-ide-helper install-packages-larastan octane-reload octane-status
+.PHONY: up build create-project install-recommend-packages init remake stop down down-v restart destroy ps logs logs-watch log-app log-app-watch app migrate seed rollback-test tinker test test-coverage optimize optimize-clear cache cache-clear ide-helper pint check-pint phpstan rector check-rector install-packages-laravel-pint install-packages-laravel-ide-helper install-packages-larastan octane-reload octane-status
 
 up:
 	$(DOCKER_COMPOSE) up -d
@@ -17,7 +17,6 @@ create-project:
 	$(DOCKER_RUN) composer create-project --prefer-dist laravel/laravel .
 	$(DOCKER_RUN) php artisan key:generate
 	$(DOCKER_RUN) php artisan storage:link
-	$(DOCKER_RUN) chmod -R 777 storage bootstrap/cache
 	$(DOCKER_RUN) composer require laravel/octane
 	$(DOCKER_RUN) php artisan octane:install --server=frankenphp
 	@make up
@@ -34,7 +33,6 @@ init:
 	$(DOCKER_RUN) cp .env.example .env
 	$(DOCKER_RUN) php artisan key:generate
 	$(DOCKER_RUN) php artisan storage:link
-	$(DOCKER_RUN) chmod -R 777 storage bootstrap/cache
 	@make up
 remake:
 	@make destroy
@@ -60,10 +58,6 @@ log-app:
 	$(DOCKER_COMPOSE) logs $(CONTAINER_NAME)
 log-app-watch:
 	$(DOCKER_COMPOSE) logs --follow $(CONTAINER_NAME)
-log-db:
-	docker compose logs db
-log-db-watch:
-	docker compose logs --follow db
 app:
 	$(DOCKER_EXEC) bash
 migrate:
@@ -92,12 +86,6 @@ cache-clear:
 	$(DOCKER_EXEC) composer clear-cache
 	@make optimize-clear
 	$(DOCKER_EXEC) php artisan event:clear
-db:
-	$(DOCKER_COMPOSE) exec db bash
-sql:
-	$(DOCKER_COMPOSE) exec db bash -c 'mysql -u $$MYSQL_USER -p$$MYSQL_PASSWORD $$MYSQL_DATABASE'
-redis:
-	$(DOCKER_COMPOSE) exec redis redis-cli
 ide-helper:
 	$(DOCKER_EXEC) php artisan clear-compiled
 	$(DOCKER_EXEC) php artisan ide-helper:generate
@@ -107,10 +95,6 @@ pint:
 	$(DOCKER_EXEC) composer pint
 check-pint:
 	$(DOCKER_EXEC) composer check-pint
-fix-style:
-	$(DOCKER_EXEC) composer fix-style
-check-style:
-	$(DOCKER_EXEC) composer check-style
 phpstan:
 	$(DOCKER_EXEC) composer phpstan
 rector:

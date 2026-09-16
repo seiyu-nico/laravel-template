@@ -29,7 +29,6 @@ tasks:
       - "{{.DOCKER_RUN}} composer create-project --prefer-dist laravel/laravel ."
       - "{{.DOCKER_RUN}} php artisan key:generate"
       - "{{.DOCKER_RUN}} php artisan storage:link"
-      - "{{.DOCKER_RUN}} chmod -R 777 storage bootstrap/cache"
       - "{{.DOCKER_RUN}} composer require laravel/octane"
       - "{{.DOCKER_RUN}} php artisan octane:install --server=frankenphp"
       - task: up
@@ -52,7 +51,6 @@ tasks:
       - "{{.DOCKER_RUN}} cp .env.example .env"
       - "{{.DOCKER_RUN}} php artisan key:generate"
       - "{{.DOCKER_RUN}} php artisan storage:link"
-      - "{{.DOCKER_RUN}} chmod -R 777 storage bootstrap/cache"
       - task: up
 
   remake:
@@ -115,16 +113,6 @@ tasks:
     cmds:
       - "{{.DOCKER_COMPOSE}} logs --follow {{.CONTAINER_NAME}}"
 
-  log-db:
-    desc: Show db container logs
-    cmds:
-      - "{{.DOCKER_COMPOSE}} logs db"
-
-  log-db-watch:
-    desc: Show db container logs (follow)
-    cmds:
-      - "{{.DOCKER_COMPOSE}} logs --follow db"
-
   # ===================
   # Container access
   # ===================
@@ -133,24 +121,6 @@ tasks:
     interactive: true
     cmds:
       - "{{.DOCKER_EXEC}} bash"
-
-  db:
-    desc: Enter db container
-    interactive: true
-    cmds:
-      - "{{.DOCKER_COMPOSE}} exec db bash"
-
-  sql:
-    desc: Open MySQL client
-    interactive: true
-    cmds:
-      - "{{.DOCKER_COMPOSE}} exec db bash -c 'mysql -u $MYSQL_USER -p$MYSQL_PASSWORD $MYSQL_DATABASE'"
-
-  redis:
-    desc: Open Redis CLI
-    interactive: true
-    cmds:
-      - "{{.DOCKER_COMPOSE}} exec redis redis-cli"
 
   # ===================
   # Laravel Artisan
@@ -235,16 +205,6 @@ tasks:
     desc: Check code style with Pint
     cmds:
       - "{{.DOCKER_EXEC}} composer check-pint"
-
-  fix-style:
-    desc: Fix code style
-    cmds:
-      - "{{.DOCKER_EXEC}} composer fix-style"
-
-  check-style:
-    desc: Check code style
-    cmds:
-      - "{{.DOCKER_EXEC}} composer check-style"
 
   phpstan:
     desc: Run PHPStan analysis
