@@ -130,16 +130,6 @@ print_info "Web URL: $APP_HOST"
 # ENV (固定値: local)
 ENV="local"
 
-# UID/GID
-echo ""
-current_uid=$(id -u)
-current_gid=$(id -g)
-read -r -p "UID を入力してください (デフォルト: $current_uid): " USER_ID
-USER_ID=${USER_ID:-$current_uid}
-read -r -p "GID を入力してください (デフォルト: $current_gid): " GROUP_ID
-GROUP_ID=${GROUP_ID:-$current_gid}
-print_info "UID: $USER_ID, GID: $GROUP_ID"
-
 # Octane設定（固定値）
 OCTANE_WORKERS=1
 OCTANE_MAX_REQUESTS=500
@@ -182,8 +172,6 @@ print_header "設定内容の確認"
 echo "サービス名:            $SERVICE_NAME"
 echo "コンテナ名:            $CONTAINER_NAME"
 echo "Web URL:               $APP_HOST"
-echo "UID:                   $USER_ID"
-echo "GID:                   $GROUP_ID"
 if [[ $INSTALL_PACKAGES =~ ^[Yy]$ ]]; then
     echo "推奨パッケージ:        インストールする"
 else
@@ -232,8 +220,6 @@ fi
 print_header ".envファイルの作成"
 cat > .env << EOF
 ENV=$ENV
-UID=$USER_ID
-GID=$GROUP_ID
 SERVICE_NAME=$SERVICE_NAME
 CONTAINER_NAME=$CONTAINER_NAME
 APP_HOST=$APP_HOST
@@ -345,8 +331,6 @@ print_info ".envにDocker設定とOctane設定を追加しています..."
 cat >> .env << EOF
 
 # Docker / Traefik settings
-UID=$USER_ID
-GID=$GROUP_ID
 SERVICE_NAME=$SERVICE_NAME
 CONTAINER_NAME=$CONTAINER_NAME
 APP_HOST=$APP_HOST
@@ -358,13 +342,11 @@ OCTANE_MAX_REQUESTS=$OCTANE_MAX_REQUESTS
 EOF
 print_success ".envにDocker設定とOctane設定を追加しました"
 
-# .env.exampleにDocker設定とOctane設定を追加（UIDとGIDはデフォルト値）
+# .env.exampleにDocker設定とOctane設定を追加
 print_info ".env.exampleにDocker設定とOctane設定を追加しています..."
 cat >> .env.example << EOF
 
 # Docker / Traefik settings
-UID=1000
-GID=1000
 SERVICE_NAME=$SERVICE_NAME
 CONTAINER_NAME=$CONTAINER_NAME
 APP_HOST=$APP_HOST

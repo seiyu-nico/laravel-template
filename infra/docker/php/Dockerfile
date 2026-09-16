@@ -32,37 +32,17 @@ RUN apt-get update \
     opcache \
     pcntl
 
-ARG UID
-ARG GID
-ENV UID=${UID}
-ENV GID=${GID}
-ENV USER=dev
-
-RUN groupadd --force -g ${GID} ${USER} && \
-    useradd -ms /bin/bash --no-user-group -u ${UID} -g ${GID} ${USER} && \
-    mkdir -p /composer && \
-    mkdir -p /data/caddy && \
-    mkdir -p /config/caddy && \
-    chown -R ${USER}:${USER} /app && \
-    chown -R ${USER}:${USER} /composer && \
-    chown -R ${USER}:${USER} /data/caddy && \
-    chown -R ${USER}:${USER} /config/caddy
-
 # Production stage
 FROM base AS prod
 
 # Copy PHP configuration
-COPY --chown=${USER}:${USER} ./infra/docker/php/php.ini/php.prod.ini /usr/local/etc/php/conf.d/custom.ini
-
-USER ${USER}
+COPY ./infra/docker/php/php.ini/php.prod.ini /usr/local/etc/php/conf.d/custom.ini
 
 # Development stage
 FROM base AS dev
 
 # Copy PHP configuration
-COPY --chown=${USER}:${USER} ./infra/docker/php/php.ini/php.dev.ini /usr/local/etc/php/conf.d/custom.ini
-
-USER ${USER}
+COPY ./infra/docker/php/php.ini/php.dev.ini /usr/local/etc/php/conf.d/custom.ini
 
 # Local stage with Xdebug
 FROM base AS local
@@ -70,6 +50,4 @@ FROM base AS local
 RUN install-php-extensions xdebug
 
 # Copy PHP configuration
-COPY --chown=${USER}:${USER} ./infra/docker/php/php.ini/php.local.ini /usr/local/etc/php/conf.d/custom.ini
-
-USER ${USER}
+COPY ./infra/docker/php/php.ini/php.local.ini /usr/local/etc/php/conf.d/custom.ini
