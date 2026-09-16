@@ -127,13 +127,6 @@ Laravel Octane + FrankenPHP により、従来のPHP-FPM構成と比較して:
 
 ## トラブルシューティング
 
-### パーミッションエラー
-
-```bash
-# コンテナ内で権限を修正
-docker compose exec app chmod -R 777 storage bootstrap/cache
-```
-
 ### Octaneが起動しない
 
 ```bash
