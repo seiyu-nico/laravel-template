@@ -298,27 +298,17 @@ print_header "Dockerイメージのビルド"
 docker compose build
 print_success "Dockerイメージをビルドしました"
 
-# コンテナの起動
-print_header "コンテナの起動"
-docker compose up -d
-print_success "コンテナを起動しました"
-
-# コンテナの準備待ち
-print_info "コンテナの準備を待っています..."
-sleep 3
+# Laravel / Octane のインストールが終わるまではコンテナを常駐させず、
+# docker compose run で都度コマンドを実行する
+DOCKER_RUN=(docker compose run --rm "$CONTAINER_NAME")
 
 # Laravelプロジェクトの作成
 print_header "Laravelプロジェクトの作成"
-docker compose exec "$CONTAINER_NAME" composer create-project --prefer-dist laravel/laravel .
+"${DOCKER_RUN[@]}" composer create-project --prefer-dist laravel/laravel .
 print_success "Laravelプロジェクトを作成しました"
 
 # プロジェクトの再配置
 print_header "プロジェクトの再配置"
-
-# コンテナを停止
-print_info "コンテナを停止しています..."
-docker compose down
-print_success "コンテナを停止しました"
 
 # プロジェクトルートの.editorconfigと.envを削除
 print_info "プロジェクトルートの.editorconfigと.envを削除しています..."
@@ -424,35 +414,29 @@ EOF
     print_success ".github/dependabot.ymlにnpm/composerの設定を追加しました"
 fi
 
-# コンテナを再起動
-print_info "コンテナを再起動しています..."
-docker compose up -d
-sleep 3
-print_success "コンテナを再起動しました"
-
 # アプリケーションキーの生成
 print_info "アプリケーションキーを生成しています..."
-docker compose exec "$CONTAINER_NAME" php artisan key:generate
+"${DOCKER_RUN[@]}" php artisan key:generate
 print_success "アプリケーションキーを生成しました"
 
 # ストレージリンクの作成
 print_info "ストレージリンクを作成しています..."
-docker compose exec "$CONTAINER_NAME" php artisan storage:link
+"${DOCKER_RUN[@]}" php artisan storage:link
 print_success "ストレージリンクを作成しました"
 
 # パーミッションの設定
 print_info "パーミッションを設定しています..."
-docker compose exec "$CONTAINER_NAME" chmod -R 777 storage bootstrap/cache
+"${DOCKER_RUN[@]}" chmod -R 777 storage bootstrap/cache
 print_success "パーミッションを設定しました"
 
 # Laravel Octaneのインストール
 print_header "Laravel Octaneのインストール"
-docker compose exec "$CONTAINER_NAME" composer require laravel/octane
+"${DOCKER_RUN[@]}" composer require laravel/octane
 print_success "Laravel Octaneをインストールしました"
 
 # FrankenPHPでOctaneを設定
 print_info "FrankenPHPでOctaneを設定しています..."
-docker compose exec "$CONTAINER_NAME" php artisan octane:install --server=frankenphp
+"${DOCKER_RUN[@]}" php artisan octane:install --server=frankenphp
 print_success "Octaneを設定しました"
 
 # 推奨パッケージのインストール
@@ -461,19 +445,19 @@ if [[ $INSTALL_PACKAGES =~ ^[Yy]$ ]]; then
     print_header "推奨パッケージのインストール"
 
     print_info "doctrine/dbal をインストールしています..."
-    docker compose exec "$CONTAINER_NAME" composer require doctrine/dbal
+    "${DOCKER_RUN[@]}" composer require doctrine/dbal
 
     print_info "Laravel IDE Helper をインストールしています..."
-    docker compose exec "$CONTAINER_NAME" composer require --dev barryvdh/laravel-ide-helper
-    docker compose exec "$CONTAINER_NAME" php artisan ide-helper:generate
-    docker compose exec "$CONTAINER_NAME" php artisan ide-helper:meta
+    "${DOCKER_RUN[@]}" composer require --dev barryvdh/laravel-ide-helper
+    "${DOCKER_RUN[@]}" php artisan ide-helper:generate
+    "${DOCKER_RUN[@]}" php artisan ide-helper:meta
 
     print_info "Laravel Debugbar をインストールしています..."
-    docker compose exec "$CONTAINER_NAME" composer require --dev barryvdh/laravel-debugbar
-    docker compose exec "$CONTAINER_NAME" php artisan vendor:publish --provider="Barryvdh\Debugbar\ServiceProvider"
+    "${DOCKER_RUN[@]}" composer require --dev barryvdh/laravel-debugbar
+    "${DOCKER_RUN[@]}" php artisan vendor:publish --provider="Barryvdh\Debugbar\ServiceProvider"
 
     print_info "Laravel Pint をインストールしています..."
-    docker compose exec "$CONTAINER_NAME" composer require laravel/pint --dev
+    "${DOCKER_RUN[@]}" composer require laravel/pint --dev
     # composer.jsonにpintスクリプトを追加（ホスト側で実行）
     if command -v jq &> /dev/null; then
         cp composer.json composer.json.tmp
@@ -485,7 +469,7 @@ if [[ $INSTALL_PACKAGES =~ ^[Yy]$ ]]; then
     fi
 
     print_info "Larastan をインストールしています..."
-    docker compose exec "$CONTAINER_NAME" composer require --dev "larastan/larastan:^3.0"
+    "${DOCKER_RUN[@]}" composer require --dev "larastan/larastan:^3.0"
     # composer.jsonにphpstanスクリプトを追加（ホスト側で実行）
     if command -v jq &> /dev/null; then
         cp composer.json composer.json.tmp
@@ -503,7 +487,7 @@ fi
 if [[ $INSTALL_LARAVEL_DATA =~ ^[Yy]$ ]]; then
     echo ""
     print_header "spatie/laravel-data のインストール"
-    docker compose exec "$CONTAINER_NAME" composer require spatie/laravel-data
+    "${DOCKER_RUN[@]}" composer require spatie/laravel-data
     print_success "spatie/laravel-data をインストールしました"
 fi
 
@@ -511,7 +495,7 @@ fi
 if [[ $INSTALL_MODULAR =~ ^[Yy]$ ]]; then
     echo ""
     print_header "internachi/modular のインストール"
-    docker compose exec "$CONTAINER_NAME" composer require internachi/modular
+    "${DOCKER_RUN[@]}" composer require internachi/modular
     print_success "internachi/modular をインストールしました"
 fi
 
@@ -519,10 +503,10 @@ fi
 if [[ $INSTALL_PEST =~ ^[Yy]$ ]]; then
     echo ""
     print_header "Pest のインストール"
-    docker compose exec "$CONTAINER_NAME" composer require --dev --with-all-dependencies \
+    "${DOCKER_RUN[@]}" composer require --dev --with-all-dependencies \
         pestphp/pest pestphp/pest-plugin-laravel
     print_info "Pest を初期化しています..."
-    docker compose exec "$CONTAINER_NAME" ./vendor/bin/pest --init
+    "${DOCKER_RUN[@]}" ./vendor/bin/pest --init
     print_success "Pest をインストールしました"
 fi
 
@@ -530,7 +514,7 @@ fi
 if [[ $INSTALL_RECTOR =~ ^[Yy]$ ]]; then
     echo ""
     print_header "Rector のインストール"
-    docker compose exec "$CONTAINER_NAME" composer require --dev rector/rector driftingly/rector-laravel
+    "${DOCKER_RUN[@]}" composer require --dev rector/rector driftingly/rector-laravel
 
     print_info "rector.php を生成しています..."
     cat > rector.php << 'EOF'
@@ -594,8 +578,8 @@ fi
 if [[ $INSTALL_LARAVEL_BOOST =~ ^[Yy]$ ]]; then
     echo ""
     print_header "Laravel Boostのインストール"
-    docker compose exec "$CONTAINER_NAME" composer require laravel/boost --dev
-    docker compose exec "$CONTAINER_NAME" php artisan boost:install
+    "${DOCKER_RUN[@]}" composer require laravel/boost --dev
+    "${DOCKER_RUN[@]}" php artisan boost:install
     # composer.jsonにpost-update-cmdスクリプトを追加（ホスト側で実行）
     if command -v jq &> /dev/null; then
         cp composer.json composer.json.tmp
@@ -608,6 +592,11 @@ if [[ $INSTALL_LARAVEL_BOOST =~ ^[Yy]$ ]]; then
     fi
     print_success "Laravel Boostをインストールしました"
 fi
+
+# コンテナの起動
+print_header "コンテナの起動"
+docker compose up -d
+print_success "Octaneでコンテナを起動しました"
 
 # 完了メッセージ
 print_header "セットアップ完了!"
@@ -626,11 +615,8 @@ echo "  - コンテナ停止:       make down"
 echo "  - コンテナ再起動:     make restart"
 echo ""
 print_info "Laravel Octane コマンド:"
-echo "  - Octane起動:     make octane-start"
-echo "  - Octane停止:     make octane-stop"
 echo "  - Octane再読込:   make octane-reload"
 echo "  - Octane状態確認: make octane-status"
-echo "  - 監視モード:     make octane-watch"
 echo ""
 print_info "品質・テスト コマンド:"
 echo "  - テスト実行:     make test"

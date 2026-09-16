@@ -24,11 +24,11 @@ Docker を使用した Laravel 開発環境テンプレートです。FrankenPHP
 1. プロジェクト設定の収集（SERVICE_NAME、APP_HOST など）
 2. .envファイルの生成
 3. Dockerイメージのビルド
-4. コンテナの起動
-5. Laravelプロジェクトの作成（プロジェクト直下に配置）
-6. Laravel Octaneのインストールと設定
-7. 推奨パッケージのインストール（オプション）
-8. 追加パッケージのインストール（オプション、個別選択）: spatie/laravel-data、Pest、Rector、internachi/modular
+4. Laravelプロジェクトの作成（プロジェクト直下に配置）
+5. Laravel Octaneのインストールと設定
+6. 推奨パッケージのインストール（オプション）
+7. 追加パッケージのインストール（オプション、個別選択）: spatie/laravel-data、Pest、Rector、internachi/modular
+8. コンテナの起動（Octane）
 
 ## 必要な環境
 
@@ -51,12 +51,11 @@ make app             # appコンテナにログイン
 
 ### Laravel Octane
 
+コンテナ起動時に Octane (FrankenPHP) がファイル監視モード (`--watch`) で自動起動し、コード変更は自動で反映されます。
+
 ```bash
-make octane-start    # Octane起動
-make octane-stop     # Octane停止
 make octane-reload   # Octane再読み込み
 make octane-status   # Octane状態確認
-make octane-watch    # ファイル監視モードで起動
 ```
 
 ### Laravel

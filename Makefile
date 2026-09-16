@@ -2,8 +2,10 @@
 DOCKER_COMPOSE := docker compose
 DOCKER_EXEC := $(DOCKER_COMPOSE) exec app
 CONTAINER_NAME := app
+# Octane 起動前 (vendor 未インストール等) のコンテナでコマンドを実行する
+DOCKER_RUN := $(DOCKER_COMPOSE) run --rm $(CONTAINER_NAME)
 
-.PHONY: up build create-project install-recommend-packages init remake stop down down-v restart destroy ps logs logs-watch log-app log-app-watch log-db log-db-watch app migrate seed rollback-test tinker test test-coverage optimize optimize-clear cache cache-clear db sql ide-helper pint check-pint phpstan rector check-rector install-packages-laravel-pint install-packages-laravel-ide-helper install-packages-larastan octane-start octane-stop octane-reload octane-status octane-watch
+.PHONY: up build create-project install-recommend-packages init remake stop down down-v restart destroy ps logs logs-watch log-app log-app-watch log-db log-db-watch app migrate seed rollback-test tinker test test-coverage optimize optimize-clear cache cache-clear db sql ide-helper pint check-pint phpstan rector check-rector install-packages-laravel-pint install-packages-laravel-ide-helper install-packages-larastan octane-reload octane-status
 
 up:
 	$(DOCKER_COMPOSE) up -d
@@ -11,12 +13,14 @@ build:
 	$(DOCKER_COMPOSE) build --no-cache --force-rm
 create-project:
 	@make build
-	@make up
 	rm -f src/.gitignore
-	$(DOCKER_EXEC) composer create-project --prefer-dist laravel/laravel .
-	$(DOCKER_EXEC) php artisan key:generate
-	$(DOCKER_EXEC) php artisan storage:link
-	$(DOCKER_EXEC) chmod -R 777 storage bootstrap/cache
+	$(DOCKER_RUN) composer create-project --prefer-dist laravel/laravel .
+	$(DOCKER_RUN) php artisan key:generate
+	$(DOCKER_RUN) php artisan storage:link
+	$(DOCKER_RUN) chmod -R 777 storage bootstrap/cache
+	$(DOCKER_RUN) composer require laravel/octane
+	$(DOCKER_RUN) php artisan octane:install --server=frankenphp
+	@make up
 install-recommend-packages:
 	$(DOCKER_EXEC) composer require doctrine/dbal
 	@make install-packages-laravel-ide-helper
@@ -25,12 +29,13 @@ install-recommend-packages:
 	@make install-packages-laravel-pint
 	@make install-packages-larastan
 init:
-	$(DOCKER_COMPOSE) up -d --build
-	$(DOCKER_EXEC) composer install
-	$(DOCKER_EXEC) cp .env.example .env
-	$(DOCKER_EXEC) php artisan key:generate
-	$(DOCKER_EXEC) php artisan storage:link
-	$(DOCKER_EXEC) chmod -R 777 storage bootstrap/cache
+	$(DOCKER_COMPOSE) build
+	$(DOCKER_RUN) composer install
+	$(DOCKER_RUN) cp .env.example .env
+	$(DOCKER_RUN) php artisan key:generate
+	$(DOCKER_RUN) php artisan storage:link
+	$(DOCKER_RUN) chmod -R 777 storage bootstrap/cache
+	@make up
 remake:
 	@make destroy
 	@make init
@@ -129,13 +134,7 @@ install-packages-larastan:
 		jq --indent 4 '.scripts |= .+{"phpstan": "./vendor/bin/phpstan analyse --xdebug"}' ./composer.json.tmp  > ./composer.json; \
 		rm -f ./composer.json.tmp; \
 	fi
-octane-start:
-	$(DOCKER_EXEC) php artisan octane:start --server=frankenphp --host=0.0.0.0 --port=80
-octane-stop:
-	$(DOCKER_EXEC) php artisan octane:stop
 octane-reload:
 	$(DOCKER_EXEC) php artisan octane:reload
 octane-status:
 	$(DOCKER_EXEC) php artisan octane:status
-octane-watch:
-	$(DOCKER_EXEC) php artisan octane:start --server=frankenphp --host=0.0.0.0 --port=80 --watch
