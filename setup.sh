@@ -494,6 +494,13 @@ if [[ $INSTALL_PEST =~ ^[Yy]$ ]]; then
     # PHPUnit形式のサンプルテストは --tia 実行時にエラーになるため削除する
     print_info "サンプルテストを削除しています..."
     rm -f tests/Unit/ExampleTest.php tests/Feature/ExampleTest.php
+    # TIAの記録をコンテナ内のHOMEではなくプロジェクト直下に保存する（コンテナ再作成後も残すため）
+    print_info "TIAの保存先を設定しています..."
+    cat >> tests/Pest.php << 'EOF'
+
+pest()->tia()->directory('.pest/tia');
+EOF
+    printf '\n/.pest\n' >> .gitignore
     print_success "Pest をインストールしました"
 fi
 
@@ -593,7 +600,8 @@ echo "  - Octane再読込:   make octane-reload"
 echo "  - Octane状態確認: make octane-status"
 echo ""
 print_info "品質・テスト コマンド:"
-echo "  - テスト実行:     make test"
+echo "  - テスト実行:     make test (変更の影響を受けるテストのみ)"
+echo "  - 全テスト実行:   make test-all"
 if [[ $INSTALL_RECTOR =~ ^[Yy]$ ]]; then
     echo "  - Rector適用:     make rector"
     echo "  - Rector確認:     make check-rector"

@@ -148,7 +148,12 @@ tasks:
       - "{{.DOCKER_EXEC}} php artisan tinker"
 
   test:
-    desc: Run tests
+    desc: Run tests affected by changes (Pest TIA)
+    cmds:
+      - "{{.DOCKER_EXEC}} php artisan test --tia"
+
+  test-all:
+    desc: Run all tests
     cmds:
       - "{{.DOCKER_EXEC}} php artisan test"
 
