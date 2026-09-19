@@ -4,8 +4,8 @@ services:
       context: .
       dockerfile: ./infra/docker/php/Dockerfile
       args:
-        - ENV=${ENV:-local}
-      target: ${ENV:-local}
+        - ENV=local
+      target: local
     command:
       [
         "php",
@@ -25,6 +25,8 @@ services:
       - SERVER_NAME=:80
       - CADDY_GLOBAL_OPTIONS=auto_https off
       - OCTANE_SERVER=frankenphp
+      # Laravel に .env ではなく .env.local を読み込ませる
+      - APP_ENV=local
     networks:
       - default
       - dev-container
@@ -32,10 +34,10 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=web"
-      - "traefik.http.routers.${SERVICE_NAME}.rule=Host(`${APP_HOST}`)"
-      - "traefik.http.routers.${SERVICE_NAME}.tls=true"
-      - "traefik.http.routers.${SERVICE_NAME}.tls.certresolver=zerossl"
-      - "traefik.http.services.${SERVICE_NAME}.loadbalancer.server.port=80"
+      - "traefik.http.routers.app.rule=Host(`app.localhost`)"
+      - "traefik.http.routers.app.tls=true"
+      - "traefik.http.routers.app.tls.certresolver=zerossl"
+      - "traefik.http.services.app.loadbalancer.server.port=80"
 
 networks:
   web:

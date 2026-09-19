@@ -216,29 +216,22 @@ if [[ ! $confirm =~ ^[Yy]$ ]]; then
     exit 0
 fi
 
-# .envファイルの作成
-print_header ".envファイルの作成"
-cat > .env << EOF
-ENV=$ENV
-SERVICE_NAME=$SERVICE_NAME
-CONTAINER_NAME=$CONTAINER_NAME
-APP_HOST=$APP_HOST
-
-# FrankenPHP / Octane settings
-OCTANE_SERVER=frankenphp
-OCTANE_WORKERS=$OCTANE_WORKERS
-OCTANE_MAX_REQUESTS=$OCTANE_MAX_REQUESTS
-EOF
-print_success ".envファイルを作成しました"
-
-# compose.yamlのコンテナ名を変更
-print_header "compose.yaml、Makefile、Taskfileのコンテナ名を変更"
+# compose.yamlのコンテナ名とTraefik設定を変更
+print_header "compose.yaml、Makefile、Taskfileの設定を変更"
 print_info "compose.yamlのコンテナ名を 'app' から '$CONTAINER_NAME' に変更しています..."
 sed -i.bak "s/^  app:/  $CONTAINER_NAME:/" compose.yaml
 sed -i.bak "s/docker compose exec app /docker compose exec $CONTAINER_NAME /g" compose.yaml
 sed -i.bak "s/docker compose logs app$/docker compose logs $CONTAINER_NAME/" compose.yaml
 rm -f compose.yaml.bak
 print_success "compose.yamlのコンテナ名を変更しました"
+
+# compose.yamlのTraefik設定を変更（環境ごとに変えたい場合はcompose.override.yamlで上書きする）
+print_info "compose.yamlのTraefik設定を変更しています..."
+sed -i.bak "s/traefik\.http\.routers\.app\./traefik.http.routers.$SERVICE_NAME./g" compose.yaml
+sed -i.bak "s/traefik\.http\.services\.app\./traefik.http.services.$SERVICE_NAME./g" compose.yaml
+sed -i.bak "s/Host(\`app\.localhost\`)/Host(\`$APP_HOST\`)/" compose.yaml
+rm -f compose.yaml.bak
+print_success "compose.yamlのTraefik設定を変更しました"
 
 # Makefileのコンテナ名変数を変更
 print_info "Makefileのコンテナ名を 'app' から '$CONTAINER_NAME' に変更しています..."
@@ -286,10 +279,10 @@ print_success "Laravelプロジェクトを作成しました"
 # プロジェクトの再配置
 print_header "プロジェクトの再配置"
 
-# プロジェクトルートの.editorconfigと.envを削除
-print_info "プロジェクトルートの.editorconfigと.envを削除しています..."
-rm -f .editorconfig .env
-print_success "プロジェクトルートの.editorconfigと.envを削除しました"
+# プロジェクトルートの.editorconfigを削除
+print_info "プロジェクトルートの.editorconfigを削除しています..."
+rm -f .editorconfig
+print_success "プロジェクトルートの.editorconfigを削除しました"
 
 # srcの中身をプロジェクト直下に移動（ホスト側で実行）
 print_info "Laravelプロジェクトをプロジェクト直下に移動しています..."
@@ -321,42 +314,22 @@ print_info "srcディレクトリを削除しています..."
 rm -rf src
 print_success "srcディレクトリを削除しました"
 
-# .env.exampleから.envを生成
-print_info ".env.exampleから.envを生成しています..."
-cp .env.example .env
-print_success ".envを生成しました"
-
-# .envにDocker設定とOctane設定を追加
-print_info ".envにDocker設定とOctane設定を追加しています..."
-cat >> .env << EOF
-
-# Docker / Traefik settings
-SERVICE_NAME=$SERVICE_NAME
-CONTAINER_NAME=$CONTAINER_NAME
-APP_HOST=$APP_HOST
+# .envを.env.localにリネーム（compose.yamlのAPP_ENV=localで読み込まれる）
+# チームで同じ設定を共有するためgit管理する
+print_info ".env.localを作成しています..."
+mv .env .env.local
+cat >> .env.local << EOF
 
 # FrankenPHP / Octane settings
 OCTANE_SERVER=frankenphp
 OCTANE_WORKERS=$OCTANE_WORKERS
 OCTANE_MAX_REQUESTS=$OCTANE_MAX_REQUESTS
 EOF
-print_success ".envにDocker設定とOctane設定を追加しました"
+rm -f .env.example
+print_success ".env.localを作成しました（.env.exampleは削除しました）"
 
-# .env.exampleにDocker設定とOctane設定を追加
-print_info ".env.exampleにDocker設定とOctane設定を追加しています..."
-cat >> .env.example << EOF
-
-# Docker / Traefik settings
-SERVICE_NAME=$SERVICE_NAME
-CONTAINER_NAME=$CONTAINER_NAME
-APP_HOST=$APP_HOST
-
-# FrankenPHP / Octane settings
-OCTANE_SERVER=frankenphp
-OCTANE_WORKERS=$OCTANE_WORKERS
-OCTANE_MAX_REQUESTS=$OCTANE_MAX_REQUESTS
-EOF
-print_success ".env.exampleにDocker設定とOctane設定を追加しました"
+# compose.override.yamlは各自の上書き用なのでgit管理から除外する
+printf '\n/compose.override.yaml\n' >> .gitignore
 
 # compose.yamlのマウント設定を修正
 print_info "compose.yamlのマウント設定を修正しています..."
@@ -390,6 +363,17 @@ fi
 print_info "アプリケーションキーを生成しています..."
 "${DOCKER_RUN[@]}" php artisan key:generate
 print_success "アプリケーションキーを生成しました"
+
+# テスト用の環境設定ファイルを作成
+# phpunit.xmlの<env>はgetenvと$_ENVしか上書きしないため、
+# compose.yamlのAPP_ENV=local（$_SERVERに入る）が優先されてしまう。
+# <server>も併せて指定することでテスト時に.env.testingが読み込まれる。
+print_info ".env.testingを作成しています..."
+sed 's/^APP_ENV=.*/APP_ENV=testing/' .env.local > .env.testing
+sed -i.bak 's|<env name="APP_ENV" value="testing"/>|<env name="APP_ENV" value="testing" force="true"/>\
+        <server name="APP_ENV" value="testing" force="true"/>|' phpunit.xml
+rm -f phpunit.xml.bak
+print_success ".env.testingを作成しました"
 
 # ストレージリンクの作成
 print_info "ストレージリンクを作成しています..."
