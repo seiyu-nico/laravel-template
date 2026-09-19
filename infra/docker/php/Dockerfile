@@ -30,7 +30,8 @@ RUN apt-get update \
     zip \
     bcmath \
     opcache \
-    pcntl
+    pcntl \
+    redis
 
 # Production stage
 FROM base AS prod
