@@ -22,9 +22,9 @@ Docker を使用した Laravel 開発環境テンプレートです。FrankenPHP
 
 スクリプトが以下を自動で行います:
 1. プロジェクト設定の収集（SERVICE_NAME、APP_HOST など）
-2. .envファイルの生成
+2. compose.yamlへのサービス名・Traefik設定の書き込み
 3. Dockerイメージのビルド
-4. Laravelプロジェクトの作成（プロジェクト直下に配置）
+4. Laravelプロジェクトの作成（プロジェクト直下に配置）と .env.local / .env.testing の生成
 5. Laravel Octaneのインストールと設定
 6. 推奨パッケージのインストール（オプション）
 7. 追加パッケージのインストール（オプション、個別選択）: spatie/laravel-data、Pest、Rector、internachi/modular
@@ -85,22 +85,26 @@ laravel-template/
 │       ├── Dockerfile
 │       └── php.ini/
 ├── setup.sh              # 自動セットアップスクリプト
-├── compose.yaml          # Docker Compose設定
+├── compose.yaml          # Docker Compose設定（サービス名・Traefik設定を含む）
 ├── Makefile              # 便利コマンド集
 └── README.md             # このファイル
 ```
 
 ## 環境設定
 
-### .env ファイル
+### 環境設定ファイル
 
-主要な環境変数:
+| ファイル | 用途 | git管理 |
+|---|---|---|
+| `.env.local` | アプリの設定。`compose.yaml` の `APP_ENV=local` により Laravel はこれを読み込む | する |
+| `.env.testing` | テスト実行時の設定 | する |
+| `compose.override.yaml` | コンテナ設定を各自で上書きしたい場合に作成する | しない |
+
+チーム全員が同じ設定を使えるよう、`.env.local` と `.env.testing` は git 管理します。`.env` と `.env.example` は使いません。
 
 ```env
-ENV=local                    # 環境 (local/dev/prod)
-SERVICE_NAME=laravel         # サービス名
-CONTAINER_NAME=laravel       # コンテナ名
-APP_HOST=laravel.example.com # Traefik用ホスト名
+APP_ENV=local
+APP_KEY=base64:...
 
 # FrankenPHP / Octane settings
 OCTANE_SERVER=frankenphp     # Octaneサーバー
@@ -108,12 +112,17 @@ OCTANE_WORKERS=1             # ワーカー数
 OCTANE_MAX_REQUESTS=500      # 最大リクエスト数
 ```
 
+### コンテナ設定
+
+サービス名・Traefik のホスト名・ビルドターゲットは `compose.yaml` に直接記述しています（`setup.sh` が書き換えます）。
+worktree で別ホスト名を使うなど、各自で変更したい場合は `compose.override.yaml` を作成して上書きしてください。
+
 ## アクセス方法
 
 Traefik経由でアクセスします：
 
 ```
-https://${APP_HOST}      # 例: https://laravel.example.com
+https://laravel.example.com   # compose.yaml の Host() に設定したホスト名
 ```
 
 **注意**: Traefikが起動していることを確認してください。
